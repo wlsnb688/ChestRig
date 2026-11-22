@@ -1,5 +1,7 @@
 # Chest Rig
 
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 NeoForge 1.21.1 client/server mod that replaces the old dedicated arrow slot with a
 chestplate-mounted **chest rig**. The rig stores weapons, arrows and food, and its arrow
 slots are used by the per-bow/crossbow ammo selector.
@@ -182,3 +184,20 @@ Run files (worlds, options, logs) are written to run/.
 - Jade, Jade Addons and AppleSkin are optional integrations. The build uses Jade only for compile-time tooltip classes. Development runs (`gradle runClient`) add Jade, Jade Addons and AppleSkin to the runtime classpath so all three paths can be tested.
 - This implementation is for NeoForge only; a Fabric port is intentionally out of scope for this project.
 - The mixin config is declared in META-INF/neoforge.mods.toml; an access transformer exposes AbstractContainerMenu#addSlot, the sneak key's isDown field and the inventory screen layout fields used by the chest-rig row.
+
+## License
+
+Copyright (C) 2026 wlsnb.
+
+Chest Rig is licensed under the **GNU Affero General Public License, version 3 only**
+(AGPL-3.0-only). The full license text is in [LICENSE](LICENSE).
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+The AGPL also covers network use: if you modify the mod and let players interact
+with it remotely over a network, you must offer those users the Corresponding
+Source of your modified version. Released builds are built from this repository,
+which serves as the Corresponding Source:
+<https://github.com/wlsnb688/ChestRig>.
