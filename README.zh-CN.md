@@ -2,7 +2,7 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-NeoForge 1.21.1 客户端/服务端模组，用安装在胸甲上的**胸挂**取代旧的独立箭矢槽。胸挂可存放武器、箭矢和食物，其箭矢槽供每把弓/弩的弹药选择器使用。
+Minecraft JAVA版 客户端/服务端模组，在胸甲上添加**胸挂**。胸挂可存放武器、箭矢和食物，其箭矢槽供每把弓/弩的弹药选择器使用。更多 Minecraft 版本与 Fabric 版本的支持已在计划中，将尽快推进。
 
 ## 胸挂
 
@@ -133,8 +133,12 @@ ModDevGradle 的运行任务位于 Gradle 工具窗口的 **Tasks -> mod develop
 
 - 客户端和服务端都必须安装本模组。
 - Jade、Jade Addons 和 AppleSkin 是可选集成。构建仅使用 Jade 的编译期提示框类。开发运行（`gradle runClient`）会将 Jade、Jade Addons 和 AppleSkin 加入运行时类路径，以便测试这三条路径。
-- 本实现仅支持 NeoForge；Fabric 移植不在本项目范围内。
+- 当前构建面向 NeoForge 1.21.1；更多 Minecraft 版本和 Fabric 版本已在计划中（见“开发计划”）。
 - mixin 配置在 META-INF/neoforge.mods.toml 中声明；access transformer 暴露了 AbstractContainerMenu#addSlot、潜行按键的 isDown 字段以及胸挂行使用的背包界面布局字段。
+
+## 开发计划
+
+当前版本面向 NeoForge 1.21.1。更多 Minecraft 版本以及 Fabric 加载器版本的开发已在计划中，将尽快推进。
 
 ## 许可证
 

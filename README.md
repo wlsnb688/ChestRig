@@ -2,9 +2,10 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-NeoForge 1.21.1 client/server mod that replaces the old dedicated arrow slot with a
-chestplate-mounted **chest rig**. The rig stores weapons, arrows and food, and its arrow
-slots are used by the per-bow/crossbow ammo selector.
+Minecraft Java Edition client/server mod that adds a chestplate-mounted **chest rig**.
+The rig stores weapons, arrows and food, and its arrow slots are used by the
+per-bow/crossbow ammo selector. Support for additional Minecraft versions and a Fabric
+build is planned.
 
 ## Chest rig
 
@@ -182,8 +183,13 @@ Run files (worlds, options, logs) are written to run/.
 
 - Both the client and server must install the mod.
 - Jade, Jade Addons and AppleSkin are optional integrations. The build uses Jade only for compile-time tooltip classes. Development runs (`gradle runClient`) add Jade, Jade Addons and AppleSkin to the runtime classpath so all three paths can be tested.
-- This implementation is for NeoForge only; a Fabric port is intentionally out of scope for this project.
+- The current build targets NeoForge 1.21.1; additional Minecraft versions and a Fabric build are planned (see Roadmap).
 - The mixin config is declared in META-INF/neoforge.mods.toml; an access transformer exposes AbstractContainerMenu#addSlot, the sneak key's isDown field and the inventory screen layout fields used by the chest-rig row.
+
+## Roadmap
+
+The current release targets NeoForge 1.21.1. Development of additional Minecraft
+versions and a Fabric build is planned and will proceed as soon as possible.
 
 ## License
 
