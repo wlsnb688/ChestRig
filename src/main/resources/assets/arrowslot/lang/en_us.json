@@ -1,0 +1,16 @@
+{
+  "hud.arrowslot.rig": "Chest Rig %s",
+  "hud.arrowslot.offhand": "Offhand",
+  "hud.arrowslot.hotbar": "Hotbar",
+  "hud.arrowslot.main": "Inventory",
+  "hud.arrowslot.empty": "No arrows",
+  "container.arrowslot.chest_rig": "Chest Rig",
+  "container.arrowslot.no_chestplate": "Equip a chestplate",
+  "config.jade.arrowslot.chest_rig": "Chest Rig",
+  "config.jade.chest_rig": "Chest Rig",
+  "key.arrowslot.rig_weapon": "Chest Rig Weapon (Toggle)",
+  "key.arrowslot.rig_weapon_vanilla": "Chest Rig Weapon (Hotbar 10)",
+  "key.categories.arrowslot": "Chest Rig",
+  "key.arrowslot.previous": "Previous Ammo Slot",
+  "key.arrowslot.next": "Next Ammo Slot"
+}

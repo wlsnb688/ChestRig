@@ -1,0 +1,27 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.wlsnb.arrowslot.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "AnvilMenuMixin",
+    "EnchantmentHelperMixin",
+    "EquipableMixin",
+    "InventoryMenuMixin",
+    "ItemExtensionMixin",
+    "ItemStackMixin",
+    "ItemStackTooltipMixin",
+    "LivingEntityMixin",
+    "PlayerMixin",
+    "ProjectileWeaponItemMixin",
+    "SmithingTransformRecipeMixin"
+  ],
+  "client": [
+    "CreativeModeInventoryScreenMixin",
+    "InventoryScreenMixin",
+    "MinecraftMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

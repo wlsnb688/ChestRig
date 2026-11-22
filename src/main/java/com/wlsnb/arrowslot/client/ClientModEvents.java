@@ -1,0 +1,74 @@
+package com.wlsnb.arrowslot.client;
+
+import com.wlsnb.arrowslot.ArrowSlotMod;
+import com.wlsnb.arrowslot.compat.ChestRigContentsTooltip;
+import com.wlsnb.arrowslot.inventory.RigContentsTooltip;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
+import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+
+import com.wlsnb.arrowslot.equipment.RigWeaponState;
+import com.wlsnb.arrowslot.network.SyncRigWeaponPayload;
+import com.wlsnb.arrowslot.network.SyncSelectionPayload;
+import net.minecraft.world.entity.player.Player;
+
+@EventBusSubscriber(modid = ArrowSlotMod.MOD_ID, value = Dist.CLIENT)
+public final class ClientModEvents {
+    private ClientModEvents() {
+    }
+
+    @SubscribeEvent
+    public static void registerPayloads(RegisterPayloadHandlersEvent event) {
+        var registrar = event.registrar("1");
+        registrar.playToClient(
+                SyncSelectionPayload.TYPE,
+                SyncSelectionPayload.STREAM_CODEC,
+                (payload, context) -> context.enqueueWork(() -> ClientAmmoState.accept(payload))
+        );
+        registrar.playToClient(
+                SyncRigWeaponPayload.TYPE,
+                SyncRigWeaponPayload.STREAM_CODEC,
+                (payload, context) -> context.enqueueWork(() -> {
+                    RigWeaponClientState.accept(payload);
+                    Player player = Minecraft.getInstance().player;
+                    if (player != null) {
+                        RigWeaponState.applyClient(
+                                player,
+                                payload.active(),
+                                payload.gMode(),
+                                payload.index(),
+                                payload.stack()
+                        );
+                    }
+                })
+        );
+    }
+
+    @SubscribeEvent
+    public static void registerTooltipComponents(RegisterClientTooltipComponentFactoriesEvent event) {
+        event.register(RigContentsTooltip.class, ChestRigContentsTooltip::new);
+    }
+
+    @SubscribeEvent
+    public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
+        KeyBindings.register(event);
+    }
+
+    @SubscribeEvent
+    public static void registerGuiLayers(RegisterGuiLayersEvent event) {
+        event.registerAboveAll(
+                ResourceLocation.fromNamespaceAndPath(ArrowSlotMod.MOD_ID, "ammo_hud"),
+                AmmoHud::render
+        );
+        event.registerAboveAll(
+                ResourceLocation.fromNamespaceAndPath(ArrowSlotMod.MOD_ID, "rig_weapon_hud"),
+                (guiGraphics, deltaTracker) -> RigWeaponHud.render(guiGraphics)
+        );
+    }
+}

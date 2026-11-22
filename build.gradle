@@ -1,0 +1,141 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version '2.0.148'
+    id 'idea'
+}
+
+version = mod_version
+group = mod_group_id
+
+base {
+    // The mod id stays "arrowslot" for save/data compatibility, but the project and
+    // produced jar use the Chest Rig name.
+    archivesName = 'chest_rig'
+}
+
+// Minecraft 1.21.1 ships with Java 21.
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+repositories {
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+    }
+}
+
+dependencies {
+    // Optional Jade tooltip integration. Jade is not a required dependency.
+    // The full Jade jar contains snownee.jade.api, so it also serves as the compile API.
+    // Version id eYz2YBGT is Jade 15.10.6+neoforge for Minecraft 1.21.1.
+    compileOnly "maven.modrinth:jade:eYz2YBGT"
+
+    // Development-run test environment. These are not shipped with the mod.
+    runtimeOnly "maven.modrinth:jade:eYz2YBGT"
+    // Jade Addons 6.1.2+neoforge for Minecraft 1.21.1. The arrow/food counters are only
+    // registered when this mod is present.
+    runtimeOnly "maven.modrinth:jade-addons-forge:O3F6Dkle"
+    // AppleSkin 3.0.9+mc1.21 for NeoForge 1.21.1 (Modrinth version id avoids the + in
+    // the human-readable version number and any loader ambiguity).
+    runtimeOnly "maven.modrinth:appleskin:uAKA6Laj"
+}
+
+neoForge {
+    version = project.neo_version
+
+    // The inventory-menu mixin adds the chest-rig row and adjusts the vanilla layout.
+    accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    runs {
+        client {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        server {
+            server()
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Mod metadata.
+//
+// The authoritative metadata lives in src/main/templates and is expanded by
+// generateModMetadata. FML also needs META-INF/neoforge.mods.toml next to the
+// compiled classes for development runs, so the expanded file is copied there too.
+// ---------------------------------------------------------------------------
+task generateModMetadata(type: ProcessResources) {
+    def replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from 'src/main/templates'
+    into layout.buildDirectory.dir('generated/sources/modMetadata')
+}
+
+def copyModMetadataForDev = tasks.register('copyModMetadataForDev', Copy) {
+    from generateModMetadata
+    into layout.buildDirectory.dir('classes/java/main')
+    include 'META-INF/neoforge.mods.toml'
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+// compileJava and processResources both run before "classes".
+classes {
+    dependsOn copyModMetadataForDev
+}
+
+// IntelliJ launches the game through a JavaExec task generated in an init script.
+// That task consumes build/classes/java/main, which the copy task above writes to,
+// so the ordering has to be declared or Gradle rejects the implicit dependency.
+tasks.withType(JavaExec).configureEach {
+    mustRunAfter copyModMetadataForDev
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+// Let the IDE and the build see the generated template output.
+// This order matters: srcDir() also wires the task as a dependency of processResources,
+// so the expanded metadata exists before resources are copied.
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+
+tasks.named('jar', Jar) {
+    // The development metadata copy also lands in classes/java/main; the generated
+    // resources copy is identical, so keep only one entry in the final jar.
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest {
+        attributes([
+                'Specification-Title'     : mod_name,
+                'Specification-Vendor'    : 'wlsnb',
+                'Specification-Version'   : '1',
+                'Implementation-Title'    : mod_name,
+                'Implementation-Version'  : mod_version,
+                'Implementation-Vendor'   : 'wlsnb'
+        ])
+    }
+}

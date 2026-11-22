@@ -1,0 +1,16 @@
+{
+  "hud.arrowslot.rig": "胸挂 %s",
+  "hud.arrowslot.offhand": "副手",
+  "hud.arrowslot.hotbar": "快捷栏",
+  "hud.arrowslot.main": "背包",
+  "hud.arrowslot.empty": "没有箭矢",
+  "container.arrowslot.chest_rig": "胸挂",
+  "container.arrowslot.no_chestplate": "装备胸甲以使用胸挂",
+  "config.jade.arrowslot.chest_rig": "胸挂",
+  "config.jade.chest_rig": "胸挂",
+  "key.arrowslot.rig_weapon": "胸挂武器（切换）",
+  "key.arrowslot.rig_weapon_vanilla": "胸挂武器（快捷栏10）",
+  "key.categories.arrowslot": "胸挂",
+  "key.arrowslot.previous": "切换上一个箭矢槽位",
+  "key.arrowslot.next": "切换下一个箭矢槽位"
+}
