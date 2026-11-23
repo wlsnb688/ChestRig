@@ -31,6 +31,10 @@ public final class ModNetwork {
         PacketDistributor.sendToPlayer(player, new SyncRigWeaponPayload(active, gMode, index, stack));
     }
 
+    public static void syncAutoEat(ServerPlayer player, boolean active, ItemStack food, int durationTicks) {
+        PacketDistributor.sendToPlayer(player, new AutoEatVisualPayload(active, food, durationTicks));
+    }
+
     private static void handleRigWeapon(RigWeaponActionPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player) {

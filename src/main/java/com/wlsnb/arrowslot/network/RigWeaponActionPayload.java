@@ -9,7 +9,6 @@ import net.minecraft.resources.ResourceLocation;
 
 public record RigWeaponActionPayload(int action, int value) implements CustomPacketPayload {
     public static final int SELECT_G = 0;
-    public static final int SELECT_VANILLA = 1;
     public static final int CYCLE = 2;
     public static final int RESTORE = 3;
 

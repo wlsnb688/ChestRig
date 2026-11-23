@@ -4,13 +4,9 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.effect.MobEffectInstance;
-
-import java.util.List;
 
 /**
- * Drag editor for the inventory and potion sections. The equipment readout follows the
- * vanilla hotbar and is therefore not freely positioned.
+ * Drag editor for the inventory, armor and hands/counter panels.
  */
 public final class HudPositionScreen extends Screen {
     private static final int SLOT = 18;
@@ -25,17 +21,18 @@ public final class HudPositionScreen extends Screen {
 
     @Override
     protected void init() {
+        // Keep both buttons at the top, clear of the bottom HUD boxes.
         this.addRenderableWidget(Button.builder(
                 Component.translatable("gui.done"),
                 button -> this.onClose()
-        ).bounds(this.width / 2 - 155, this.height - 30, 150, 20).build());
+        ).bounds(this.width / 2 - 155, 50, 150, 20).build());
         this.addRenderableWidget(Button.builder(
                 Component.translatable("hud.arrowslot.option.reset_positions"),
                 button -> {
                     config.resetPositions();
                     config.save();
                 }
-        ).bounds(this.width / 2 + 5, this.height - 30, 150, 20).build());
+        ).bounds(this.width / 2 + 5, 50, 150, 20).build());
     }
 
     @Override
@@ -43,9 +40,11 @@ public final class HudPositionScreen extends Screen {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         int[] inventory = inventoryBox();
-        int[] potion = potionBox();
+        int[] left = HudOverlay.leftInfoBox(config);
+        int[] right = HudOverlay.rightInfoBox(config);
         drawBox(guiGraphics, "hud.arrowslot.inventory", inventory[0], inventory[1], inventory[2], inventory[3]);
-        drawBox(guiGraphics, "hud.arrowslot.effects", potion[0], potion[1], potion[2], potion[3]);
+        drawBox(guiGraphics, "hud.arrowslot.armor_info", left[0], left[1], left[2], left[3]);
+        drawBox(guiGraphics, "hud.arrowslot.hands_counters", right[0], right[1], right[2], right[3]);
 
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 18, 0xFFFFFFFF);
         guiGraphics.drawCenteredString(
@@ -68,23 +67,32 @@ public final class HudPositionScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        // Let the Done and Reset buttons win when a HUD box overlaps them.
+        if (super.mouseClicked(mouseX, mouseY, button)) {
+            return true;
+        }
         if (button == 0) {
             int[] inventory = inventoryBox();
-            int[] potion = potionBox();
+            int[] left = HudOverlay.leftInfoBox(config);
+            int[] right = HudOverlay.rightInfoBox(config);
             if (inside(mouseX, mouseY, inventory[0], inventory[1], inventory[2], inventory[3])) {
                 dragging = 0;
                 dragOffsetX = (int) mouseX - inventory[0];
                 dragOffsetY = (int) mouseY - inventory[1];
-            } else if (inside(mouseX, mouseY, potion[0], potion[1], potion[2], potion[3])) {
+            } else if (inside(mouseX, mouseY, left[0], left[1], left[2], left[3])) {
                 dragging = 1;
-                dragOffsetX = (int) mouseX - potion[0];
-                dragOffsetY = (int) mouseY - potion[1];
+                dragOffsetX = (int) mouseX - left[0];
+                dragOffsetY = (int) mouseY - left[1];
+            } else if (inside(mouseX, mouseY, right[0], right[1], right[2], right[3])) {
+                dragging = 2;
+                dragOffsetX = (int) mouseX - right[0];
+                dragOffsetY = (int) mouseY - right[1];
             }
             if (dragging >= 0) {
                 return true;
             }
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return false;
     }
 
     @Override
@@ -96,9 +104,14 @@ public final class HudPositionScreen extends Screen {
                 config.inventoryAnchored = false;
                 config.inventoryX = x;
                 config.inventoryY = y;
+            } else if (dragging == 1) {
+                config.leftInfoAnchored = false;
+                config.leftInfoX = x;
+                config.leftInfoY = y;
             } else {
-                config.potionX = x;
-                config.potionY = y;
+                config.rightInfoAnchored = false;
+                config.rightInfoX = x;
+                config.rightInfoY = y;
             }
             return true;
         }
@@ -128,28 +141,14 @@ public final class HudPositionScreen extends Screen {
         int x = config.inventoryAnchored
                 ? Math.round((this.width - width) / 2.0F) + config.inventoryX
                 : config.inventoryX;
-        int y = config.inventoryAnchored ? this.height - config.inventoryY : config.inventoryY;
+        int y = config.inventoryAnchored
+                ? this.height - 24 - height + config.inventoryY
+                : config.inventoryY;
+        if (config.inventoryAnchored) {
+            y = Math.max(0, Math.min(y, this.height - 24 - height));
+        }
         x = clamp(x, 0, Math.max(0, this.width - width));
         y = clamp(y, 0, Math.max(0, this.height - height));
-        return new int[]{x, y, width, height};
-    }
-
-    private int[] potionBox() {
-        int count = Math.max(1, effects().size());
-        int gap = config.potionGap;
-        int width;
-        int height;
-        if (config.potionHorizontal) {
-            int rowWidth = config.potionMini ? 18 : 36;
-            width = count * rowWidth + (count - 1) * gap;
-            height = config.potionMini ? 22 : 38;
-        } else {
-            int rowHeight = config.potionMini ? 18 : 24;
-            width = config.potionMini ? 22 : 60;
-            height = count * rowHeight + (count - 1) * gap;
-        }
-        int x = clamp(config.potionX, 0, Math.max(0, this.width - width));
-        int y = clamp(config.potionY, 0, Math.max(0, this.height - height));
         return new int[]{x, y, width, height};
     }
 
@@ -159,10 +158,5 @@ public final class HudPositionScreen extends Screen {
 
     private static int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));
-    }
-
-    private static List<MobEffectInstance> effects() {
-        var player = net.minecraft.client.Minecraft.getInstance().player;
-        return player == null ? List.of() : List.copyOf(player.getActiveEffects());
     }
 }

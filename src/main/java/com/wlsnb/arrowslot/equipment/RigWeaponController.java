@@ -25,23 +25,15 @@ public final class RigWeaponController {
         switch (action) {
             case RigWeaponActionPayload.SELECT_G -> {
                 if (RigWeaponState.isActive(player)) {
-                    if (RigWeaponState.isGMode(player)) {
+                    if (RigWeaponState.isGMode(player) || RigWeaponState.isPending(player)) {
                         restore(player);
                     }
                 } else {
                     select(player, true);
                 }
             }
-            case RigWeaponActionPayload.SELECT_VANILLA -> {
-                if (!RigWeaponState.isActive(player)) {
-                    select(player, false);
-                } else if (RigWeaponState.isGMode(player)) {
-                    RigWeaponState.setGMode(player, false);
-                    sync(player);
-                }
-            }
             case RigWeaponActionPayload.CYCLE -> {
-                if (RigWeaponState.isGMode(player)) {
+                if (RigWeaponState.isGMode(player) && !RigWeaponState.isPending(player)) {
                     cycle(player, value >= 0 ? 1 : -1);
                 }
             }
@@ -74,6 +66,16 @@ public final class RigWeaponController {
             return;
         }
         ItemStack stored = ChestRig.getWeapon(player, RigWeaponState.index(player));
+        if (RigWeaponState.isPending(player)) {
+            if (stored.isEmpty()) {
+                // The trident was thrown and has not been picked up yet. Keep the slot
+                // selected with an empty hand until G or a successful hotbar change.
+                return;
+            }
+            // Something refilled the slot (for example the trident was picked up).
+            RigWeaponState.setHeld(player, stored.copy());
+            sync(player);
+        }
         if (stored.isEmpty()) {
             // The player moved the weapon out of the rig while it was virtually held.
             RigWeaponState.deactivate(player);
@@ -98,6 +100,20 @@ public final class RigWeaponController {
     public static void restoreForTransition(ServerPlayer player) {
         if (RigWeaponState.isActive(player)) {
             restore(player);
+        }
+    }
+
+    /** Keeps a thrown trident's rig slot selected with an empty hand. */
+    public static void holdEmptyAfterThrow(ServerPlayer player, int slot) {
+        RigWeaponState.holdEmpty(player, slot);
+        sync(player);
+    }
+
+    /** Re-arms the pending empty slot when its trident is picked back up. */
+    public static void resumeHeldAfterPickup(ServerPlayer player, int slot, ItemStack stack) {
+        if (RigWeaponState.isPending(player) && RigWeaponState.index(player) == slot) {
+            RigWeaponState.setHeld(player, stack.copy());
+            sync(player);
         }
     }
 

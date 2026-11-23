@@ -13,11 +13,15 @@
     "LivingEntityMixin",
     "PlayerMixin",
     "ProjectileWeaponItemMixin",
-    "SmithingTransformRecipeMixin"
+    "SmithingTransformRecipeMixin",
+    "ThrownTridentMixin",
+    "TridentItemMixin"
   ],
   "client": [
     "CreativeModeInventoryScreenMixin",
+    "GuiMixin",
     "InventoryScreenMixin",
+    "LocalPlayerMixin",
     "ItemStackTooltipMixin",
     "MinecraftMixin"
   ],

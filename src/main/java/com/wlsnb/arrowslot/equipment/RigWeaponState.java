@@ -52,14 +52,35 @@ public final class RigWeaponState {
         return state != null && state.active ? state.held : ItemStack.EMPTY;
     }
 
+    /** True while the selected rig slot is deliberately empty, e.g. after throwing a trident. */
+    public static boolean isPending(Player player) {
+        State state = STATES.get(PlayerKey.of(player));
+        return state != null && state.active && state.pendingEmpty;
+    }
+
     public static void activate(Player player, int index, boolean gMode, int hotbarSlot, ItemStack stack) {
         State state = state(player);
         state.active = true;
+        state.pendingEmpty = false;
         state.gMode = gMode;
         state.index = index;
         state.hotbarSlot = hotbarSlot;
         state.held = stack.isEmpty() ? ItemStack.EMPTY : stack.copy();
         state.lastSaved = state.held.copy();
+    }
+
+    /**
+     * Keeps the rig slot selected with an empty hand. Used after throwing the trident from
+     * that slot, so the main hand does not jump back to the hotbar until G or a hotbar
+     * change ends the selection.
+     */
+    public static void holdEmpty(Player player, int index) {
+        State state = state(player);
+        state.active = true;
+        state.pendingEmpty = true;
+        state.index = index;
+        state.held = ItemStack.EMPTY;
+        state.lastSaved = ItemStack.EMPTY;
     }
 
     /** Applies a server sync packet to a client player. */
@@ -71,6 +92,7 @@ public final class RigWeaponState {
 
         State state = state(player);
         state.active = true;
+        state.pendingEmpty = stack.isEmpty();
         state.gMode = gMode;
         state.index = index;
         state.held = stack.isEmpty() ? ItemStack.EMPTY : stack.copy();
@@ -81,6 +103,7 @@ public final class RigWeaponState {
         State state = STATES.get(PlayerKey.of(player));
         if (state != null && state.active) {
             state.held = stack == null || stack.isEmpty() ? ItemStack.EMPTY : stack;
+            state.pendingEmpty = state.held.isEmpty();
         }
     }
 
@@ -102,6 +125,7 @@ public final class RigWeaponState {
         State state = STATES.get(PlayerKey.of(player));
         if (state != null) {
             state.active = false;
+            state.pendingEmpty = false;
             state.gMode = false;
             state.held = ItemStack.EMPTY;
             state.lastSaved = ItemStack.EMPTY;
@@ -114,7 +138,7 @@ public final class RigWeaponState {
      */
     public static boolean save(Player player) {
         State state = STATES.get(PlayerKey.of(player));
-        if (state == null || !state.active) {
+        if (state == null || !state.active || state.pendingEmpty) {
             return false;
         }
 
@@ -145,6 +169,7 @@ public final class RigWeaponState {
 
     private static final class State {
         private boolean active;
+        private boolean pendingEmpty;
         private boolean gMode;
         private int index;
         private int hotbarSlot = -1;

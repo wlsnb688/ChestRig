@@ -9,8 +9,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 /**
- * Small built-in settings screen. It intentionally mirrors the toggles of the former
- * Inventory HUD+ integration instead of depending on that mod's configuration screen.
+ * Small built-in settings screen for the inventory, effects and equipment HUDs.
  */
 public final class HudConfigScreen extends Screen {
     private static final int WIDTH = 150;
@@ -34,19 +33,13 @@ public final class HudConfigScreen extends Screen {
         addToggle(right, y, "hud.arrowslot.option.inventory_vertical", () -> config.inventoryVertical, v -> config.inventoryVertical = v);
         y += 24;
         addToggle(left, y, "hud.arrowslot.option.potion", () -> config.potionEnabled, v -> config.potionEnabled = v);
-        addToggle(right, y, "hud.arrowslot.option.potion_mini", () -> config.potionMini, v -> config.potionMini = v);
-        y += 24;
-        addToggle(left, y, "hud.arrowslot.option.potion_horizontal", () -> config.potionHorizontal, v -> config.potionHorizontal = v);
         addToggle(right, y, "hud.arrowslot.option.show_empty", () -> config.showEmpty, v -> config.showEmpty = v);
         y += 24;
-        addToggle(left, y, "hud.arrowslot.option.equipment", () -> config.equipmentEnabled, v -> config.equipmentEnabled = v);
-        addToggle(right, y, "hud.arrowslot.option.show_armor", () -> config.showArmor, v -> config.showArmor = v);
+        addToggle(left, y, "hud.arrowslot.option.show_durability", () -> config.showDurability, v -> config.showDurability = v);
+        addToggle(right, y, "hud.arrowslot.option.armor_hud", () -> config.armorHudEnabled, v -> config.armorHudEnabled = v);
         y += 24;
-        addToggle(left, y, "hud.arrowslot.option.show_held", () -> config.showHeld, v -> config.showHeld = v);
-        addToggle(right, y, "hud.arrowslot.option.show_durability", () -> config.showDurability, v -> config.showDurability = v);
-        y += 24;
-        addToggle(left, y, "hud.arrowslot.option.show_free_slots", () -> config.showFreeSlots, v -> config.showFreeSlots = v);
-        addToggle(right, y, "hud.arrowslot.option.show_arrows", () -> config.showArrows, v -> config.showArrows = v);
+        addToggle(left, y, "hud.arrowslot.option.hands_hud", () -> config.handsHudEnabled, v -> config.handsHudEnabled = v);
+        addToggle(right, y, "hud.arrowslot.option.equipment_mini", () -> config.equipmentMini, v -> config.equipmentMini = v);
         y += 22;
 
         this.addRenderableWidget(Button.builder(

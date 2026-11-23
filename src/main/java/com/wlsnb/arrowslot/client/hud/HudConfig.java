@@ -10,12 +10,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Client-side layout and visibility settings for the built-in HUD. The defaults follow
- * Inventory HUD+'s default arrangement: inventory at the bottom centre, effects at the
- * top left, and the equipment readout around the hotbar.
+ * Client-side layout and visibility settings for the built-in HUD. Inventory and the two
+ * equipment panels are independently movable; the potion readout replaces the vanilla
+ * top-right effect HUD and is therefore not movable.
  */
 public final class HudConfig {
-    private static final int CONFIG_VERSION = 2;
+    private static final int CONFIG_VERSION = 7;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path PATH = FMLPaths.CONFIGDIR.get().resolve("arrowslot-hud.json");
     private static HudConfig instance;
@@ -23,31 +23,29 @@ public final class HudConfig {
     public int configVersion = CONFIG_VERSION;
     public boolean enabled = true;
 
-    public boolean inventoryEnabled = true;
+    public boolean inventoryEnabled = false;
     public boolean inventoryMini = false;
     public boolean inventoryVertical = false;
     public boolean inventoryAnchored = true;
     public int inventoryX = 0;
-    public int inventoryY = 150;
+    public int inventoryY = 0;
     public int inventoryAlpha = 0;
 
     public boolean potionEnabled = true;
-    public boolean potionMini = false;
-    public boolean potionHorizontal = false;
-    public boolean potionLevels = false;
-    public boolean potionShowHidden = true;
-    public int potionX = 20;
-    public int potionY = 20;
-    public int potionGap = 0;
-    public int potionAlpha = 100;
 
-    public boolean equipmentEnabled = true;
-    public boolean showArmor = true;
-    public boolean showHeld = true;
-    public boolean showDurability = true;
-    public boolean showFreeSlots = true;
-    public boolean showArrows = true;
     public boolean showEmpty = true;
+    public boolean showDurability = true;
+
+    public boolean armorHudEnabled = true;
+    public boolean handsHudEnabled = true;
+    public boolean equipmentMini = false;
+
+    public boolean leftInfoAnchored = true;
+    public int leftInfoX = 0;
+    public int leftInfoY = 0;
+    public boolean rightInfoAnchored = true;
+    public int rightInfoX = 0;
+    public int rightInfoY = 0;
 
     private HudConfig() {
     }
@@ -69,11 +67,45 @@ public final class HudConfig {
                 HudConfig loaded = GSON.fromJson(json, HudConfig.class);
                 if (loaded != null) {
                     config = loaded;
-                    if (legacy || config.configVersion < CONFIG_VERSION) {
+                    if (legacy || config.configVersion < 2) {
                         // The first version stored a top-left panel layout. Reset it once
                         // rather than making every existing install keep the old layout.
                         config = new HudConfig();
                         migrated = true;
+                    } else {
+                        if (config.configVersion < 3) {
+                            // Inventory HUD is off by default from version 3 onward.
+                            config.inventoryEnabled = false;
+                        }
+                        if (config.configVersion < 7) {
+                            // Version 7 adds separate armor/hands switches, a shared mini
+                            // mode, bottom-corner positions and the vanilla-style effects.
+                            config.inventoryY = 0;
+                            config.armorHudEnabled = true;
+                            config.handsHudEnabled = true;
+                            config.equipmentMini = false;
+                            config.leftInfoAnchored = true;
+                            config.leftInfoX = 0;
+                            config.leftInfoY = 0;
+                            config.rightInfoAnchored = true;
+                            config.rightInfoX = 0;
+                            config.rightInfoY = 0;
+                            config.configVersion = 7;
+                            migrated = true;
+                        } else {
+                            if (!json.contains("\"armorHudEnabled\"")) {
+                                config.armorHudEnabled = true;
+                            }
+                            if (!json.contains("\"handsHudEnabled\"")) {
+                                config.handsHudEnabled = true;
+                            }
+                            if (!json.contains("\"leftInfoAnchored\"")) {
+                                config.leftInfoAnchored = true;
+                            }
+                            if (!json.contains("\"rightInfoAnchored\"")) {
+                                config.rightInfoAnchored = true;
+                            }
+                        }
                     }
                 }
             }
@@ -98,20 +130,24 @@ public final class HudConfig {
 
     public void clamp() {
         inventoryX = clamp(inventoryX, -4096, 4096);
-        inventoryY = clamp(inventoryY, 0, 4096);
-        potionX = clamp(potionX, -4096, 4096);
-        potionY = clamp(potionY, -4096, 4096);
+        inventoryY = clamp(inventoryY, -4096, 4096);
         inventoryAlpha = clamp(inventoryAlpha, 0, 100);
-        potionAlpha = clamp(potionAlpha, 0, 100);
-        potionGap = clamp(potionGap, -5, 5);
+        leftInfoX = clamp(leftInfoX, -4096, 4096);
+        leftInfoY = clamp(leftInfoY, -4096, 4096);
+        rightInfoX = clamp(rightInfoX, -4096, 4096);
+        rightInfoY = clamp(rightInfoY, -4096, 4096);
     }
 
     public void resetPositions() {
         inventoryAnchored = true;
         inventoryX = 0;
-        inventoryY = 150;
-        potionX = 20;
-        potionY = 20;
+        inventoryY = 0;
+        leftInfoAnchored = true;
+        leftInfoX = 0;
+        leftInfoY = 0;
+        rightInfoAnchored = true;
+        rightInfoX = 0;
+        rightInfoY = 0;
     }
 
     private static int clamp(int value, int min, int max) {

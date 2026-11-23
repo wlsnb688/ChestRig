@@ -16,7 +16,9 @@ import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
+import com.wlsnb.arrowslot.equipment.AutoEatVisualState;
 import com.wlsnb.arrowslot.equipment.RigWeaponState;
+import com.wlsnb.arrowslot.network.AutoEatVisualPayload;
 import com.wlsnb.arrowslot.network.SyncRigWeaponPayload;
 import com.wlsnb.arrowslot.network.SyncSelectionPayload;
 import net.minecraft.world.entity.player.Player;
@@ -33,6 +35,21 @@ public final class ClientModEvents {
                 SyncSelectionPayload.TYPE,
                 SyncSelectionPayload.STREAM_CODEC,
                 (payload, context) -> context.enqueueWork(() -> ClientAmmoState.accept(payload))
+        );
+        registrar.playToClient(
+                AutoEatVisualPayload.TYPE,
+                AutoEatVisualPayload.STREAM_CODEC,
+                (payload, context) -> context.enqueueWork(() -> {
+                    Player player = Minecraft.getInstance().player;
+                    if (player == null) {
+                        return;
+                    }
+                    if (payload.active()) {
+                        AutoEatVisualState.start(player, payload.food(), payload.durationTicks());
+                    } else {
+                        AutoEatVisualState.stop(player);
+                    }
+                })
         );
         registrar.playToClient(
                 SyncRigWeaponPayload.TYPE,
@@ -60,6 +77,7 @@ public final class ClientModEvents {
         if (event.getPlayer() != null) {
             RigWeaponState.clear(event.getPlayer());
             AmmoSelection.clear(event.getPlayer());
+            AutoEatVisualState.clear(event.getPlayer());
         }
         RigWeaponClientState.reset();
     }
@@ -80,13 +98,14 @@ public final class ClientModEvents {
                 ResourceLocation.fromNamespaceAndPath(ArrowSlotMod.MOD_ID, "ammo_hud"),
                 AmmoHud::render
         );
-        event.registerAboveAll(
-                ResourceLocation.fromNamespaceAndPath(ArrowSlotMod.MOD_ID, "rig_weapon_hud"),
-                (guiGraphics, deltaTracker) -> RigWeaponHud.render(guiGraphics)
-        );
+        // Built-in HUD: inventory, vanilla-style effects, armor and hands/counters panels.
         event.registerAboveAll(
                 ResourceLocation.fromNamespaceAndPath(ArrowSlotMod.MOD_ID, "inventory_hud"),
                 (guiGraphics, deltaTracker) -> HudOverlay.render(guiGraphics)
+        );
+        event.registerAboveAll(
+                ResourceLocation.fromNamespaceAndPath(ArrowSlotMod.MOD_ID, "rig_weapon_hud"),
+                (guiGraphics, deltaTracker) -> RigWeaponHud.render(guiGraphics)
         );
     }
 }

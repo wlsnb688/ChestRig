@@ -1,14 +1,33 @@
-# Chest Rig（胸挂）
+# Chest Rig / 胸挂
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-Minecraft JAVA版 客户端/服务端模组，在胸甲上添加**胸挂**。胸挂可存放武器、箭矢和食物，其箭矢槽供每把弓/弩的弹药选择器使用。更多 Minecraft 版本与 Fabric 版本的支持已在计划中，将尽快推进。
+Chest Rig 是一个 **Minecraft 1.21.1 / NeoForge** 模组，它把实用的胸挂直接整合到原版胸甲上。
+模组提供武器、箭矢、食物和通用储物槽，支持逐武器选择弹药、紧凑的战斗 HUD、自动进食、
+拾取分类和一套零耐久装备规则。**没有单独添加“胸挂”物品**：穿上胸甲，胸挂就属于这件胸甲。
 
-## 胸挂
+## 环境要求
 
-胸甲自带独立的胸挂内容物。取下或丢出胸甲不会单独掉出内容物，内容物会保留在物品内部。由钻石胸甲升级而来的下界合金胸甲会保留内容物、自定义名称和附魔，行为与原版一致。
+| 项目 | 版本 |
+| --- | --- |
+| Minecraft | 1.21.1 |
+| NeoForge | 21.1.267 或更新的 21.1.x |
+| Java | 21 |
+| 可选 | AppleSkin（低生命自动进食、营养值显示） |
 
-胸挂容量取决于胸甲材质：
+客户端和服务端都需要安装。模组与 **Inventory HUD+** 互斥，启动前请移除它。
+
+## 安装
+
+1. 安装 Minecraft 1.21.1 对应的 NeoForge 21.1.267。
+2. 把 `chest_rig-1.21.1-neoforge-21.1.267-0.1.0-Alpha.jar` 放进客户端和服务端的 `mods` 文件夹。
+3. 如果装有 Inventory HUD+，先移除。
+4. 启动游戏。胸挂不依赖额外物品或配方，直接穿胸甲即可。
+
+## 快速开始
+
+穿上任意原版胸甲，打开生存模式背包，屏幕底部会出现一行九个胸挂槽位。原版快捷栏保持原位，
+只有当前胸甲材质解锁的槽位可用。
 
 | 胸甲 | 武器槽 | 箭矢槽 | 食物槽 | 通用槽 |
 | --- | ---: | ---: | ---: | ---: |
@@ -19,160 +38,250 @@ Minecraft JAVA版 客户端/服务端模组，在胸甲上添加**胸挂**。胸
 | 钻石 | 2 | 4 | 3 | 0 |
 | 下界合金 | 2 | 4 | 2 | 1 |
 
-装备胸甲后，生存模式背包会在快捷栏下方显示一行九个胸挂槽位。原版快捷栏本身保持原位。只有当前胸甲解锁的槽位可用。空的武器、箭矢和食物槽会显示空心的剑、箭和面包图标；通用槽没有图标。
+槽位规则：
 
-武器槽接受弓、弩、剑、斧和三叉戟。箭矢槽接受箭矢（包括模组添加的箭矢）。食物槽接受带有食物组件的物品。通用槽接受任何物品。
+- **武器槽**接受弓、弩、剑、斧和三叉戟；
+- **箭矢槽**接受箭矢，包括模组箭矢；
+- **食物槽**接受带有食物组件的物品；
+- **通用槽**接受任何物品，只有下界合金胸甲拥有。
+
+胸挂内容属于胸甲本身。取下或丢出胸甲时，内容物不会散落，而是留在胸甲里。钻石胸甲升级为
+下界合金后会保留内容物、名称和附魔，多余的食物槽会自动整理。
+
+在背包中悬停胸甲，可以像潜影盒一样查看其中存放的内容物。
+
+## 操作
+
+| 操作 | 默认按键 |
+| --- | --- |
+| 选中 / 放下胸挂武器 | `G` |
+| 选中期间切换武器槽 | 滚轮或副手交换键 |
+| 持弓/弩潜行时切换弹药 | 滚轮 |
+| 上一个 / 下一个弹药槽 | 鼠标侧键 5 / 鼠标侧键 4 |
+| 重置弹药选择为默认槽 | 鼠标中键 |
+| 打开 HUD 设置 | `O` |
+| 把箭矢 / 剑或斧存入胸挂 | 右键点击物品 |
+
+所有按键都可以在 **选项 -> 控制 -> Chest Rig** 中重新绑定。
 
 ## 弹药选择
 
-- 手持弓或弩并真正处于潜行状态时，会立即显示 HUD。
-- HUD 只列出当前装有箭矢类物品的槽位：先是胸挂箭矢槽，然后是副手、快捷栏 1–9 和主背包。
-- 选中的槽位带有红色边框。胸挂、副手和快捷栏槽位带有标签。
-- 滚动滚轮可循环切换选择。只有真正潜行时才会响应滚动；鞘翅飞行、创造模式飞行和游泳不会打开 HUD，也不会切换弹药。
-- 中键点击会将武器重置到默认槽位；创造模式下禁用。
-- 停止潜行时 HUD 关闭。没有两秒的潜行超时。
-- 快速切换键无需潜行即可使用，并会显示 HUD 两秒。默认前一槽为 XBUTTON2，后一槽为 XBUTTON1，两者均可重新绑定。已有的 options.txt 如果使用旧的相反默认值，会执行一次迁移。
-- 切换潜行模式下，手持弓/弩时会临时表现得像按住潜行。在切换潜行状态下将主手切换到弓/弩会退出潜行。这些规则不适用于按住潜行模式。
-- 武器只要仍在玩家背包中，就会保留其选择。丢出武器、放入容器、在未开启 keepInventory 时死亡，或结束游戏会话，都会丢失这个临时选择。无效选择会在下一次射击时回退到默认值。
+- 真正潜行并手持弓或弩时，弹药 HUD 会立即出现。
+- HUD 只列出当前有有效箭矢的槽位：先胸挂箭矢槽，再副手、快捷栏 1-9 和主背包。
+- 滚动滚轮切换选择。只有真正潜行时才响应；鞘翅飞行、创造飞行和游泳不会打开 HUD。
+- 鼠标中键把武器重置到默认槽；创造模式禁用。
+- 快速切换键无需潜行即可使用，并让 HUD 显示两秒。
+- 每把武器在背包期间会记住自己的选择。丢出武器、放进容器、未开启 keepInventory 死亡或
+  结束会话都会清除选择；选择失效时下一次射击会回退到默认槽。
+- 切换潜行模式下，手持弓/弩时行为等同于按住潜行。
 
 ## 快捷栏右侧的胸挂武器槽
 
-- 原版快捷栏右侧新增一个槽位，显示当前激活的胸挂武器。
-- 两个按键可选择它：数字键 0（单独的可重绑按键，类似快捷栏第 10 格）和 G（可重绑的切换键）。
-- G 会选择胸挂武器，并记住之前的快捷栏物品。再次按 G 会恢复之前的快捷栏槽位，并把胸挂武器放回。
-- 使用 G 选中期间，滚动滚轮或副手交换键会在胸挂的武器槽之间循环。滚动会先检查弹药 HUD，因此箭矢切换保持优先。
-- 通过数字键 0 或滚动到新槽位选中时，滚动和副手交换使用原版行为；当快捷栏选择变化时，控制器会恢复保存的物品。
-- 槽位右侧的计数器会在左侧显示胸挂箭矢槽中的箭矢总数，在右侧显示食物总营养值（未安装 AppleSkin 时为食物物品数量）。空状态使用空心箭、面包或鸡腿图标。
+快捷栏右侧的槽位显示当前选中的胸挂武器。该槽位固定，不能移动。
+
+- 只能通过 `G` 选中胸挂武器。再次按 `G` 会恢复之前的快捷栏槽位，并把武器放回胸挂。
+- 选中期间，滚轮或副手交换键可以在胸挂武器槽之间循环。滚动会先检查弹药 HUD，箭矢切换优先。
+- 未装备胸甲，或胸挂内没有任何武器时，槽位隐藏。
+- 如果唯一武器是三叉戟且已经被掷出，空槽位会保持显示和选中，直到按下 `G` 或成功切换快捷栏。
+- 选中时使用加粗的白色框线，接近原版快捷栏选中效果。
+- 槽位旁边的计数器左侧显示胸挂箭矢总数，右侧显示食物营养值（未安装 AppleSkin 时为食物数量）。
+  空心图标表示该类别为空或不存在。
+
+### 掷出三叉戟
+
+从胸挂武器槽掷出三叉戟时会特殊处理：
+
+- 三叉戟会从胸挂中移除，不会被复制；
+- 掷出的实体带有发光效果，方便寻找；
+- 实体记住主人、原槽位和唯一武器 ID；
+- 拾取后优先回到原槽位；原槽位被占用时进入其他空武器槽；
+- 原槽位保持选中但主手为空，直到按 `G` 或成功切换快捷栏。
+
+激流三叉戟和创造模式投掷保持原版行为。
 
 ## 内置 HUD
 
-Chest Rig 现在自行提供原先期望由 Inventory HUD+ 提供的 HUD 功能：
+Chest Rig 自带 HUD，不需要也不兼容 Inventory HUD+。
 
-- **背包：** 27 个主背包槽位（不重复显示快捷栏），普通/迷你尺寸，横向/纵向，默认位于底部居中且背景透明。
-- **药水效果：** 每行 60x24，包含图标、等级以及剩余时间或时间条；支持普通/迷你、横向/纵向，默认位于左上角。
-- **装备：** 快捷栏周围的头盔、胸甲、护腿、靴子、主手和副手，带颜色分级百分比、空槽剪影、背包空位和箭矢总数。
-- **设置：** 按 `O` 打开 HUD 设置；位置编辑界面可移动背包和药水区域，装备显示默认跟随快捷栏，与 Inventory HUD+ 默认布局一致。
-- **保存：** 设置写入 `config/arrowslot-hud.json`。
+- **背包：** 默认关闭。开启后显示 27 个主背包槽位，支持普通/迷你、横向/纵向。默认位置在
+  快捷栏正上方，与快捷栏顶部保留 2 像素间隔，不会覆盖快捷栏。
+- **效果：** 取代右上角的原版效果图标，沿用原版的有益/有害两行排列，并显示剩余时间和等级。
+  位置固定。
+- **防具：** 左下角面板显示头盔、胸甲、护腿和靴子，以及带颜色区分的耐久百分比。有独立开关。
+- **主手与计数器：** 右下角面板显示主手、副手、胸挂箭矢和食物。有独立开关。
+- **扁平计数器风格：** 两块装备面板都只有物品图标和带阴影的数字，没有背景和槽位。普通模式为
+  四行单列；共用的迷你模式为两行多列，字体更小。
+- **可堆叠主手/副手：** 显示物品图标，物品数量显示在旁边的数字位置，不再显示右下角堆叠角标。
+- **位置编辑：** 按 `O`，点击“编辑 HUD 位置”。背包、防具和主手/计数器面板可以分别拖动；
+  效果显示和武器槽固定。
 
-Inventory HUD+ 已被声明为互斥模组，启动前必须移除。
+设置保存在 `config/arrowslot-hud.json`。
+
+## 自动进食与拾取
+
+- 饥饿值低于三个图标时，胸挂会自动进食，直到饥饿值高于五个图标。
+- 每次自动进食都有原版进食动作和移动减速。
+- 上一次进食结束后至少 5 秒才会开始下一次。
+- 自动食用金苹果后，30 秒内不会再次自动食用金苹果；附魔金苹果为 60 秒。锁定期间仍可自动
+  食用其他食物。
+- 只有在安装 AppleSkin 时才会启用低生命值自动进食。
+- 拾取箭矢或食物时，如果胸挂中存在同名、可堆叠且未满的对应槽位，会自动进入该槽位。
+- 普通物品只有在快捷栏和副手都没有合适空间时，才会进入通用槽；空的通用槽可以接受不死图腾。
 
 ## 零耐久装备
 
-被追踪的装备（盔甲、盾牌、分级武器/工具、弓、弩和三叉戟）耐久归零后仍留在世界中，不会消失。
+被追踪的装备耐久归零后仍留在世界中，不会消失：盔甲、盾牌、分级武器/工具、弓、弩和三叉戟。
 
-- 损坏的盔甲和盾牌会保留附魔条目，但不再提供护甲值或非负面附魔效果，也无法格挡攻击。诅咒和经验修补仍然有效。
-- 损坏的装备被取下后无法再次装备。它可以通过铁砧、工作台或经验修补修复。
-- 损坏的盾牌在下一次尝试格挡攻击时会被摧毁。
-- 当饥饿值低于三个图标时，胸挂会自动进食，直到饥饿值高于五个图标。只有在安装 AppleSkin 时才会启用低生命值自动进食。
-- 拾取箭矢时，如果胸挂中存在对应且未满的箭矢槽，箭矢会自动进入该槽位。普通掉落物在快捷栏和副手都没有合适空间时会进入通用槽；空的通用槽可以接受不死图腾。
-- 右键点击箭矢会将其存入胸挂。右键点击剑或斧会将其存入胸挂；当两个武器槽都已满时，则与当前显示的武器槽交换。
-- 在背包中悬停胸甲时，物品提示框会像潜影盒一样显示其中存放的胸挂内容物。这是原版提示框组件，不需要任何可选模组。
-- 快捷栏右侧的胸挂武器 HUD 始终显示两个计数器：左侧为胸挂箭矢总数，右侧为食物总营养值（未安装 AppleSkin 时为食物数量）。空心图标表示该类别为空或不存在。这部分由 Chest Rig 自己实现，不再需要其他 HUD 模组。
-- 关闭 keepInventory 时，损坏的盔甲会在死亡时销毁。损坏的胸甲不会掉落胸甲本身，而是掉落其中存放的内容物。
-- 开启 keepInventory 时，损坏的盔甲会保留，并在重生后立即获得持续 60 秒的绑定诅咒。
-- 在铁砧上用两个相同部件修复损坏装备时，经验消耗翻倍。用钻石或下界合金锭修复会消耗三倍材料，但经验消耗保持正常。
-- 在工作台中合并两个相同的被追踪物品时，会将其修复到两者剩余耐久之和的一半（向上取整）。
+- 损坏的盔甲和盾牌保留附魔条目，但不再提供护甲值或非负面附魔效果，也无法格挡攻击。
+  诅咒和经验修补仍然有效。
+- 损坏的装备被取下后无法再次装备，可以通过铁砧、工作台或经验修补修复。
+- 损坏的盾牌在下一次尝试格挡时被摧毁。
+- 关闭 keepInventory 时，损坏的盔甲会在死亡时销毁；损坏的胸甲不会掉落胸甲本身，而是掉落
+  其中存放的内容物。
+- 开启 keepInventory 时，损坏的盔甲会保留，并在重生后获得持续 60 秒的绑定诅咒。
+- 在铁砧上用两个相同部件修复损坏装备时，经验消耗翻倍。用钻石或下界合金锭修复会消耗三倍
+  材料，但经验消耗保持正常。
+- 在工作台中合并两个相同的被追踪物品，会修复到两者剩余耐久之和的一半（向上取整）。
 - 有损的钻石物品升级为下界合金后，会立即恢复满耐久。
 
-## 构建
+## 配置
+
+HUD 布局保存在 `config/arrowslot-hud.json`。格式变更时会自动迁移。按 `O` 后使用
+**重置 HUD 位置** 可以恢复默认布局。
+
+## 从源码编译
 
 ### 环境要求
 
-- **JDK 21**（构建使用 Java 21 工具链）
-- **Gradle 9.9.1** 已安装并在 PATH 中；未附带 Wrapper 启动脚本
-- 首次构建会下载 Minecraft、NeoForge 和映射，因此需要网络连接，并会花费几分钟
+- JDK 21（构建使用 Java 21 工具链）
+- Gradle 9.9.1，并在 `PATH` 中；仓库不包含 gradlew 启动脚本
+- 首次构建需要联网下载 Minecraft、NeoForge 和映射
 
-构建目标：**Java 21**、**Minecraft 1.21.1**、**NeoForge 21.1.267**、**ModDevGradle 2.0.148**。Java 工具链由 `gradle.properties` 中的 `java_version` 选择，未来切换目标版本时可与 `minecraft_version` 一起修改。版本专属的 Java 新增类或资源覆盖可放在 `src/versions/<minecraft_version>/java` 和 `src/versions/<minecraft_version>/resources`；只有与当前版本匹配的目录会加入 source set。
+目标版本：**Minecraft 1.21.1**、**NeoForge 21.1.267**、**ModDevGradle 2.0.148**、
+**Java 21**。
 
-### 命令行
+### 编译
 
-项目保留了 Wrapper 配置（gradle/wrapper/gradle-wrapper.jar 和 gradle-wrapper.properties，固定为 Gradle 9.9.1），但**不包含** gradlew / gradlew.bat 启动脚本。请使用 gradle 可执行文件，其版本必须为 **9.9.1**。在项目根目录执行：
+在项目根目录执行：
 
-    gradle build
+```
+gradle build
+```
 
-当怀疑存在过期输出时，先执行 clean 清除 build/：
+产物位于：
 
-    gradle clean build
+```
+build/libs/chest_rig-1.21.1-neoforge-21.1.267-0.1.0-Alpha.jar
+```
 
-产物为 build/libs/chest_rig-1.0.0.jar。将其放入 Minecraft 1.21.1 + NeoForge 21.1.267 的 mods 文件夹即可。
+怀疑有旧输出时：
+
+```
+gradle clean build
+```
+
+### 版本变量
+
+构建目标和 jar 文件名都由 `gradle.properties` 决定，Java 源码和元数据模板里没有写死版本。
+
+| 属性 | 当前值 | 用途 |
+| --- | --- | --- |
+| `minecraft_version` | `1.21.1` | Minecraft 目标版本，同时决定 `run/<side>/<loader>/<version>/` 和 `src/versions/<version>/` |
+| `mod_loader` | `neoforge` | 加载器标识，用于 jar 文件名和运行目录 |
+| `loader_version` | `21.1.267` | 编译和开发运行使用的确切加载器版本 |
+| `minecraft_version_range` | `[1.21.1]` | 模组元数据中声明兼容的游戏版本范围 |
+| `loader_version_range` | `[1,)` | 模组元数据中声明兼容的加载器版本范围 |
+| `mod_version` | `0.1.0-Alpha` | 当前分支的模组版本，不作为构建矩阵维度 |
+
+jar 文件名格式：
+
+```
+chest_rig-<minecraft_version>-<mod_loader>-<loader_version>-<mod_version>.jar
+```
+
+为其他游戏或加载器目标构建时，修改这些属性（或用 `-P` 传入），并同步更新版本范围、映射、Java 版本和版本源码覆盖层：
+
+```
+gradle build -Pminecraft_version=1.21.4 -Ploader_version=21.4.123
+```
+
+正式移植应放在独立分支。`-P` 只改变当前脚本读取的值，不会让不兼容的源码或元数据变得兼容。当前构建仅支持 NeoForge：`mod_loader` 只用于标记产物和运行目录，编译其他加载器平台需要独立的构建脚本。
+
+模组版本按 git 分支管理。不要在同一分支上同时构建多个模组版本；发布时在该分支上更新 `mod_version`。
 
 常用变体：
 
-| 命令 | 结果 |
+| 命令 | 作用 |
 | --- | --- |
-| gradle build | 编译、运行检查并打包 jar |
-| gradle clean build | 清除 build/ 后执行同样流程 |
-| gradle jar | 仅打包 jar，不运行检查任务 |
-| gradle --no-daemon build | 一次性构建，不保留 Gradle 守护进程 |
+| `gradle build` | 编译、运行检查并打包 |
+| `gradle clean build` | 先清空 `build/` 再构建 |
+| `gradle jar` | 只打包，不运行检查 |
+| `gradle --no-daemon build` | 一次性构建，不保留 Gradle 守护进程 |
 
-随时可以在项目根目录执行 gradle wrapper --gradle-version 9.9.1 重新生成启动脚本。
+开发时可使用 `gradle runClient` 和 `gradle runServer`，运行目录分别在
+`run/client/neoforge/1.21.1/` 和 `run/server/neoforge/1.21.1/`。在 IntelliJ 中请通过
+ModDevGradle 任务并选择 **Run After Build**；直接 Run 会跳过编译。
 
-### IntelliJ IDEA
+## 给 jar 签名（可选）
 
-1. **File -> Open** 打开项目文件夹。IDEA 会将其作为 Gradle 项目导入，并运行 neoForgeIdeSync 生成元数据模板。
-2. 打开 **Gradle** 工具窗口；项目名显示为 ChestRig。
-3. **build -> build** 构建并打包 jar 到 build/libs。
+NeoForge 不要求 mod jar 签名。签名主要用于完整性校验或私下分发。请对**最终构建出的 jar**
+签名，签名后不要再修改它。
 
-默认情况下，IDEA 使用其自带的 Gradle 发行版。要改用 Wrapper 固定的版本，请在 **Settings -> Build, Execution, Deployment -> Build Tools -> Gradle** 下选择 **Use Gradle from -> gradle-wrapper.properties file**。
+1. 生成一次密钥库，并妥善备份：
 
-如果 Gradle 工具窗口显示的任务列表为空或过期，点击 **reload** 按钮（Gradle 窗口左上角的循环箭头）重新同步。
+```
+keytool -genkeypair -v -alias chest_rig -keyalg RSA -keysize 2048 -validity 3650 -keystore chest_rig-signing.jks -storepass CHANGE_ME -keypass CHANGE_ME -dname "CN=wlsnb, OU=Chest Rig, O=wlsnb, L=Unknown, ST=Unknown, C=CN"
+```
 
-### 在开发环境中运行游戏
+2. 对 jar 签名：
 
-ModDevGradle 的运行任务位于 Gradle 工具窗口的 **Tasks -> mod development** 下：
+```
+jarsigner -keystore chest_rig-signing.jks -storepass CHANGE_ME -keypass CHANGE_ME -sigalg SHA-256withRSA -digestalg SHA-256 build/libs/chest_rig-1.21.1-neoforge-21.1.267-0.1.0-Alpha.jar chest_rig
+```
 
-- runClient - 启动加载了模组的开发客户端
-- runServer - 启动专用开发服务端（--nogui）
+3. 验证：
 
-右键任务并选择 **Run After Build**。直接选择 **Run** 只会启动游戏并跳过编译任务，导致 FML 报错
-"File ...\build\classes\java\main is not a valid mod file"，因为类和资源输出尚不存在。
+```
+jarsigner -verify -verbose -certs build/libs/chest_rig-1.21.1-neoforge-21.1.267-0.1.0-Alpha.jar
+```
 
-命令行同样可以运行：
+自签名证书会给出警告，这是正常的。重新构建后需要重新签名。不要把密钥库或密码提交到仓库。
 
-    gradle runClient
-    gradle runServer
+## 常见问题
 
-每个运行端都有独立的版本化游戏目录。路径由 `gradle.properties` 中的
-`run_root`、`mod_loader` 和 `minecraft_version` 推导：
+- **提示 Inventory HUD+ 互斥：** 从 `mods` 中移除 Inventory HUD+。Chest Rig 已自带 HUD。
+- **加载界面看不到 HUD：** 这是故意的。加载遮罩或世界加载界面激活时，HUD 会暂时隐藏。
+- **更新后提示缺少类或 Mixin：** 执行 `gradle clean build`，并完全重启游戏。世界重载不会
+  重新加载 Mixin。
+- **HUD 位置不对：** 按 `O` 重置 HUD 位置，或删除 `config/arrowslot-hud.json` 后重启。
+- **构建提示 Java 版本错误：** 确认 `java -version` 为 21，并让 Gradle 使用 Java 21。
+- **找不到 jar：** 执行完整的 `gradle build`，而不是只执行 `gradle compileJava`。
 
-| 路径 | 内容 |
-| --- | --- |
-| `run/client/neoforge/<minecraft_version>/` | 客户端选项、世界、日志和客户端模组 |
-| `run/server/neoforge/<minecraft_version>/` | 服务端配置、世界、日志和服务端模组 |
-| `run/client/neoforge/<minecraft_version>/mods/` | 仅开发环境使用的客户端模组 jar |
-| `run/server/neoforge/<minecraft_version>/mods/` | 仅开发环境使用的服务端模组 jar |
+## 多人游戏
 
-执行 `gradle printRunLayout` 可打印当前版本解析后的路径。测试其他
-Minecraft 版本时，修改 `minecraft_version`，并在 `build.gradle` 的
-`devModDownloadsByMinecraftVersion` 中提供对应条目；新版本的运行目录会
-自动创建，不会与当前版本的选项、世界、日志或模组混用。
+客户端和服务端都要安装。胸挂内容、弹药选择、三叉戟归还和自动进食都由服务端判定；客户端只
+负责 HUD 和进食动画。客户端无法通过仅客户端的视觉数据包凭空创建胸挂内容。
 
-### 故障排查
+## 后续计划
 
-- **"is not a valid mod file"** - build/classes 或 build/resources 从未生成。通过 Gradle 工具窗口使用 **Run After Build** 运行任务，或在命令行执行 gradle runClient。
-- **更新后快捷栏或胸挂槽位位置错乱** - 执行 gradle clean build 并重启游戏，以清除过期的槽位类和资源。
-- **"Parameter ... could not open ...clientRunVmArgs.txt"** - 运行是从手工创建的 IntelliJ Application 配置启动的。请改用 ModDevGradle 的 runClient 任务。
-- **"Mod file ... not found" / 缺少资源** - 执行 gradle clean build 清除过期输出。
+当前版本面向 NeoForge 1.21.1，后续计划支持更多 Minecraft 版本和 Fabric。
 
-## 备注
+## AI 辅助说明
 
-- 客户端和服务端都必须安装本模组。
-- AppleSkin 是可选客户端集成。Jade、JEI、Jade Addons 和 AppleSkin 使用 `runtimeOnly` 作为开发依赖，因此 `runClient` 和 `runServer` 都会加载它们。JEI 还需要 MezzConfig（可选 MezzConfigGUI），`downloadDevMods` Gradle 任务会把这两个 jar 下载到版本化的 `<gameDir>/mods` 目录；旧的 `run/mods` 只作为一次性迁移来源。JEI 与 Jade Addons 目前尚未被代码引用，这些模组都不会随 Chest Rig 一起发布。
-- **Inventory HUD+ 已被声明为互斥模组。** Chest Rig 现在自行实现背包、药水、装备和胸挂计数器 HUD；启动前请移除 Inventory HUD+，否则 FML 会直接报告依赖冲突。
-- 当前构建面向 NeoForge 1.21.1；更多 Minecraft 版本和 Fabric 版本已在计划中（见“开发计划”）。
-- mixin 配置在 META-INF/neoforge.mods.toml 中声明；access transformer 暴露了 AbstractContainerMenu#addSlot、潜行按键的 isDown 字段以及胸挂行使用的背包界面布局字段。
-
-## 开发计划
-
-当前版本面向 NeoForge 1.21.1。更多 Minecraft 版本以及 Fabric 加载器版本的开发已在计划中，将尽快推进。
+本项目的部分代码、文档和重构使用了 DeepSeek 的编码智能体（**deepseek-flash**，运行于
+**DeepSeek Harness**）辅助生成。人类维护者负责需求、设计、审查、测试和发布；AI 输出仅作为
+草稿参考，不作为最终依据。
 
 ## 许可证
 
 Copyright (C) 2026 wlsnb.
 
-Chest Rig 采用 **GNU Affero 通用公共许可证第 3 版（仅此版本）**（AGPL-3.0-only）授权。完整许可证文本见 [LICENSE](LICENSE)。
+Chest Rig 使用 **GNU Affero General Public License, version 3 only**（AGPL-3.0-only）
+授权，完整许可证见 [LICENSE](LICENSE)。
 
-本程序按“原样”分发，希望它能有用，但不提供任何担保；甚至不提供适销性或特定用途适用性的暗示担保。详情请参阅 GNU Affero 通用公共许可证，并以 [LICENSE](LICENSE) 的英文原文为准。
+本程序按“原样”分发，不提供任何担保；也不保证适用于特定用途。详情见 GNU Affero 通用公共
+许可证。
 
-AGPL 也涵盖网络使用：如果你修改了本模组，并让玩家通过计算机网络远程与其交互，你必须向这些用户提供你所修改版本的对应源代码（Corresponding Source）。发布构建由本仓库构建，本仓库即对应源代码：
+AGPL 同样覆盖网络使用：如果你修改了本模组并通过网络让玩家使用，必须向这些玩家提供你修改
+版本的对应源码。正式构建来自本仓库，仓库地址即对应源码：
 <https://github.com/wlsnb688/ChestRig>。

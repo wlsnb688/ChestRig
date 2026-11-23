@@ -5,7 +5,18 @@ plugins {
     id 'idea'
 }
 
-version = mod_version
+// Build-target variables. They come from gradle.properties and can be overridden
+// per invocation, e.g. -Pminecraft_version=1.21.4 -Ploader_version=21.4.123.
+def modVersion = (findProperty('mod_version') ?: '0.0.0-dev').toString()
+def gameVersion = (findProperty('minecraft_version') ?: '1.21.1').toString()
+def modLoader = (findProperty('mod_loader') ?: 'neoforge').toString()
+def loaderVersion = (findProperty('loader_version') ?: '0.0.0').toString()
+
+// Include the game, loader and loader build in the artifact name, so packages for
+// different targets cannot overwrite each other:
+// chest_rig-<game>-<loader>-<loaderVersion>-<modVersion>.jar
+// The mod version is fixed per git branch; it is not a build-matrix dimension.
+version = "${gameVersion}-${modLoader}-${loaderVersion}-${modVersion}"
 group = mod_group_id
 
 base {
@@ -39,18 +50,16 @@ repositories {
 // tested without mixing its config, logs or mods with this one.
 // ---------------------------------------------------------------------------
 def runRootName = (project.findProperty('run_root') ?: 'run').toString()
-def modLoader = (project.findProperty('mod_loader') ?: 'neoforge').toString()
-def targetMinecraftVersion = (project.findProperty('minecraft_version') ?: '1.21.1').toString()
 def runRootDir = layout.projectDirectory.dir(runRootName)
 def runGameDir = { String side ->
-    runRootDir.dir("${side}/${modLoader}/${targetMinecraftVersion}")
+    runRootDir.dir("${side}/${modLoader}/${gameVersion}")
 }
 
 // Optional per-version source overlays. The shared src/main tree stays the
 // baseline; src/versions/<minecraft_version>/java and .../resources are added
 // only when that folder exists, so a second target can carry small API or asset
 // differences without moving the whole project.
-def versionSourceRoot = layout.projectDirectory.dir("src/versions/${targetMinecraftVersion}")
+def versionSourceRoot = layout.projectDirectory.dir("src/versions/${gameVersion}")
 if (versionSourceRoot.asFile.isDirectory()) {
     sourceSets.main.java.srcDir(versionSourceRoot.dir('java'))
     sourceSets.main.resources.srcDir(versionSourceRoot.dir('resources'))
@@ -84,9 +93,9 @@ def devModDownloadsByMinecraftVersion = [
                         "https://cdn.modrinth.com/data/BOHUKqOz/versions/w3KJAJXs/mezz_config_gui-1.21.1-neoforge-mc1.21.1-0.7.1.jar"
         ]
 ]
-def devModDownloads = devModDownloadsByMinecraftVersion[targetMinecraftVersion]
+def devModDownloads = devModDownloadsByMinecraftVersion[gameVersion]
 if (devModDownloads == null) {
-    logger.warn("No dev-only mod download set is registered for Minecraft " + targetMinecraftVersion + "; downloadDevMods will be a no-op.")
+    logger.warn("No dev-only mod download set is registered for Minecraft " + gameVersion + "; downloadDevMods will be a no-op.")
     devModDownloads = [:]
 }
 def devModsDirs = ['client', 'server'].collect { side ->
@@ -164,7 +173,7 @@ tasks.matching { it.name == "runClient" || it.name == "runServer" }.configureEac
 }
 
 neoForge {
-    version = project.neo_version
+    version = loaderVersion
 
     // The inventory-menu mixin adds the chest-rig row and adjusts the vanilla layout.
     accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
@@ -205,14 +214,14 @@ neoForge {
 // ---------------------------------------------------------------------------
 task generateModMetadata(type: ProcessResources) {
     def replaceProperties = [
-            minecraft_version      : minecraft_version,
+            minecraft_version      : gameVersion,
             minecraft_version_range: minecraft_version_range,
-            neo_version            : neo_version,
+            loader_version         : loaderVersion,
             loader_version_range   : loader_version_range,
             mod_id                 : mod_id,
             mod_name               : mod_name,
             mod_license            : mod_license,
-            mod_version            : mod_version
+            mod_version            : modVersion
     ]
     inputs.properties replaceProperties
     expand replaceProperties
@@ -259,7 +268,7 @@ tasks.named('jar', Jar) {
                 'Specification-Vendor'    : 'wlsnb',
                 'Specification-Version'   : '1',
                 'Implementation-Title'    : mod_name,
-                'Implementation-Version'  : mod_version,
+                'Implementation-Version'  : version,
                 'Implementation-Vendor'   : 'wlsnb'
         ])
     }

@@ -5,6 +5,7 @@ import com.wlsnb.arrowslot.ammo.AmmoSelection;
 import com.wlsnb.arrowslot.equipment.BrokenGear;
 import com.wlsnb.arrowslot.equipment.ChestRigAutomation;
 import com.wlsnb.arrowslot.equipment.RigWeaponController;
+import com.wlsnb.arrowslot.equipment.RigWeaponState;
 import com.wlsnb.arrowslot.inventory.ChestRig;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -46,6 +47,7 @@ public final class CommonEvents {
         if (event.getEntity() instanceof ServerPlayer player) {
             RigWeaponController.restoreForTransition(player);
             RigWeaponController.clear(player);
+            ChestRigAutomation.clear(player);
         }
         AmmoSelection.clear(event.getEntity());
     }
@@ -54,6 +56,7 @@ public final class CommonEvents {
     public static void onLivingDeath(LivingDeathEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             RigWeaponController.restoreForTransition(player);
+            ChestRigAutomation.cancel(player);
         }
     }
 
@@ -61,6 +64,7 @@ public final class CommonEvents {
     public static void onChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             RigWeaponController.restoreForTransition(player);
+            ChestRigAutomation.cancel(player);
         }
     }
 
@@ -72,6 +76,11 @@ public final class CommonEvents {
     @SubscribeEvent
     public static void onSwapHands(LivingSwapItemsEvent.Hands event) {
         if (!(event.getEntity() instanceof ServerPlayer player) || !RigWeaponController.isActive(player)) {
+            return;
+        }
+        if (RigWeaponState.isPending(player)) {
+            // Only G or a successful hotbar change may end the empty pending selection.
+            event.setCanceled(true);
             return;
         }
 

@@ -125,6 +125,40 @@ public final class ChestRig {
         return moved;
     }
 
+    public static int insertFood(Player player, ItemStack stack, boolean allowEmpty) {
+        ItemStack chestplate = getChestplate(player);
+        if (!stack.has(DataComponents.FOOD)) {
+            return 0;
+        }
+
+        int moved = 0;
+        for (int i = 0; i < ChestRigMaterial.of(chestplate).foodSlots() && !stack.isEmpty(); i++) {
+            int storage = FOOD_START + i;
+            ItemStack current = get(chestplate, storage);
+            if (current.isEmpty() && !allowEmpty) {
+                continue;
+            }
+            if (!current.isEmpty() && !ItemStack.isSameItemSameComponents(current, stack)) {
+                continue;
+            }
+
+            int limit = Math.min(64, stack.getMaxStackSize());
+            int amount = Math.min(limit - current.getCount(), stack.getCount());
+            if (amount <= 0) {
+                continue;
+            }
+
+            ItemStack merged = current.isEmpty() ? stack.copyWithCount(amount) : current.copy();
+            if (!current.isEmpty()) {
+                merged.grow(amount);
+            }
+            set(chestplate, storage, merged);
+            stack.shrink(amount);
+            moved += amount;
+        }
+        return moved;
+    }
+
     public static boolean insertWeapon(Player player, ItemStack stack) {
         for (int i = 0; i < weaponSlots(player); i++) {
             if (getWeapon(player, i).isEmpty()) {

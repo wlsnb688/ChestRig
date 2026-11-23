@@ -4,6 +4,8 @@ import com.wlsnb.arrowslot.ammo.AmmoSlots;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.LevelLoadingScreen;
+import net.minecraft.client.gui.screens.ReceivingLevelScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -25,6 +27,11 @@ public final class AmmoHud {
         Minecraft minecraft = Minecraft.getInstance();
         Player player = minecraft.player;
         if (player == null || minecraft.options.hideGui) {
+            return;
+        }
+        if (minecraft.level == null || minecraft.getOverlay() != null
+                || minecraft.screen instanceof LevelLoadingScreen
+                || minecraft.screen instanceof ReceivingLevelScreen) {
             return;
         }
 

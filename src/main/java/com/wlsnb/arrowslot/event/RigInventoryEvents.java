@@ -4,6 +4,7 @@ import com.wlsnb.arrowslot.ArrowSlotMod;
 import com.wlsnb.arrowslot.ammo.AmmoSlots;
 import com.wlsnb.arrowslot.equipment.RigWeaponController;
 import com.wlsnb.arrowslot.inventory.ChestRig;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -40,9 +41,13 @@ public final class RigInventoryEvents {
 
         if (AmmoSlots.isArrow(stack)) {
             int moved = ChestRig.insertArrows(player, stack, false);
-            if (moved > 0) {
-                finishPickup(event, itemEntity, stack);
-            }
+            finishPickup(event, itemEntity, stack, moved > 0);
+            return;
+        }
+
+        if (stack.has(DataComponents.FOOD)) {
+            int moved = ChestRig.insertFood(player, stack, false);
+            finishPickup(event, itemEntity, stack, moved > 0);
             return;
         }
 
@@ -55,9 +60,7 @@ public final class RigInventoryEvents {
         }
 
         int moved = ChestRig.insertUniversal(player, stack);
-        if (moved > 0) {
-            finishPickup(event, itemEntity, stack);
-        }
+        finishPickup(event, itemEntity, stack, moved > 0);
     }
 
     @SubscribeEvent
@@ -105,11 +108,17 @@ public final class RigInventoryEvents {
         event.setCancellationResult(InteractionResult.SUCCESS);
     }
 
-    private static void finishPickup(ItemEntityPickupEvent.Pre event, ItemEntity itemEntity, ItemStack stack) {
-        if (stack.isEmpty()) {
-            itemEntity.discard();
+    private static void finishPickup(ItemEntityPickupEvent.Pre event, ItemEntity itemEntity, ItemStack stack,
+                                     boolean moved) {
+        if (!moved) {
+            return;
         }
-        event.setCanPickup(TriState.FALSE);
+        if (stack.isEmpty()) {
+            // Only suppress the vanilla pickup when the whole stack was moved. A partial
+            // merge leaves the remainder for the normal inventory pickup.
+            itemEntity.discard();
+            event.setCanPickup(TriState.FALSE);
+        }
     }
 
     private static boolean hasHotbarOrOffhandCopy(Player player, ItemStack stack) {

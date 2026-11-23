@@ -3,7 +3,8 @@ package com.wlsnb.arrowslot.client;
 import com.wlsnb.arrowslot.ArrowSlotMod;
 import com.wlsnb.arrowslot.ammo.AmmoSlots;
 import com.wlsnb.arrowslot.client.hud.HudConfigScreen;
-import com.wlsnb.arrowslot.inventory.ChestRig;
+import com.wlsnb.arrowslot.equipment.AutoEatVisualState;
+import com.wlsnb.arrowslot.equipment.RigWeaponState;
 import com.wlsnb.arrowslot.network.RigWeaponActionPayload;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
@@ -39,7 +40,7 @@ public final class ClientEvents {
             return;
         }
 
-        if (RigWeaponClientState.isGMode()) {
+        if (RigWeaponClientState.isGMode() && !RigWeaponState.isPending(minecraft.player)) {
             event.setCanceled(true);
             PacketDistributor.sendToServer(new RigWeaponActionPayload(
                     RigWeaponActionPayload.CYCLE,
@@ -49,20 +50,9 @@ public final class ClientEvents {
         }
 
         if (RigWeaponClientState.isActive()) {
-            // Vanilla scrolling is intentional in the key-0/scroll mode. The server
-            // controller notices the changed hotbar slot and restores the saved stack.
+            // After a thrown trident the slot stays selected until the hotbar actually
+            // changes, so vanilla scrolling ends the pending empty selection.
             return;
-        }
-
-        // The new slot sits immediately to the right of hotbar slot 9.
-        if (minecraft.player.getInventory().selected == 8
-                && delta < 0.0D
-                && ChestRig.firstWeaponIndex(minecraft.player) >= 0) {
-            event.setCanceled(true);
-            PacketDistributor.sendToServer(new RigWeaponActionPayload(
-                    RigWeaponActionPayload.SELECT_VANILLA,
-                    0
-            ));
         }
     }
 
@@ -82,6 +72,8 @@ public final class ClientEvents {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) {
             RigWeaponClientState.reset();
+        } else {
+            AutoEatVisualState.tick(minecraft.player);
         }
         while (KeyBindings.PREVIOUS.consumeClick()) {
             ClientAmmoState.quickSwitch(-1);
@@ -92,12 +84,6 @@ public final class ClientEvents {
         while (KeyBindings.RIG_WEAPON.consumeClick()) {
             PacketDistributor.sendToServer(new RigWeaponActionPayload(
                     RigWeaponActionPayload.SELECT_G,
-                    0
-            ));
-        }
-        while (KeyBindings.RIG_WEAPON_VANILLA.consumeClick()) {
-            PacketDistributor.sendToServer(new RigWeaponActionPayload(
-                    RigWeaponActionPayload.SELECT_VANILLA,
                     0
             ));
         }
