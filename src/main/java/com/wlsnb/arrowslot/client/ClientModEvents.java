@@ -1,6 +1,8 @@
 package com.wlsnb.arrowslot.client;
 
 import com.wlsnb.arrowslot.ArrowSlotMod;
+import com.wlsnb.arrowslot.ammo.AmmoSelection;
+import com.wlsnb.arrowslot.client.hud.HudOverlay;
 import com.wlsnb.arrowslot.compat.ChestRigContentsTooltip;
 import com.wlsnb.arrowslot.inventory.RigContentsTooltip;
 import net.minecraft.client.Minecraft;
@@ -8,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
@@ -51,6 +54,17 @@ public final class ClientModEvents {
     }
 
     @SubscribeEvent
+    public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
+        // Opening a world also fires LoggingOut from Minecraft#disconnect, and the event
+        // can carry a null player. Only clear per-player state when there is one.
+        if (event.getPlayer() != null) {
+            RigWeaponState.clear(event.getPlayer());
+            AmmoSelection.clear(event.getPlayer());
+        }
+        RigWeaponClientState.reset();
+    }
+
+    @SubscribeEvent
     public static void registerTooltipComponents(RegisterClientTooltipComponentFactoriesEvent event) {
         event.register(RigContentsTooltip.class, ChestRigContentsTooltip::new);
     }
@@ -69,6 +83,10 @@ public final class ClientModEvents {
         event.registerAboveAll(
                 ResourceLocation.fromNamespaceAndPath(ArrowSlotMod.MOD_ID, "rig_weapon_hud"),
                 (guiGraphics, deltaTracker) -> RigWeaponHud.render(guiGraphics)
+        );
+        event.registerAboveAll(
+                ResourceLocation.fromNamespaceAndPath(ArrowSlotMod.MOD_ID, "inventory_hud"),
+                (guiGraphics, deltaTracker) -> HudOverlay.render(guiGraphics)
         );
     }
 }

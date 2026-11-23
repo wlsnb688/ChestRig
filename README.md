@@ -66,9 +66,21 @@ universal slot accepts any item.
 - While selected by key 0 or by scrolling onto the new slot, scroll and offhand swap use
   vanilla behavior; the controller restores the saved stack when the hotbar selection
   changes.
-- Right of the slot, the upper number is the total arrows in the rig's arrow slots. The
-  lower number is total food nutrition when AppleSkin is installed, otherwise the number
-  of food items. Empty states use hollow arrow, bread or drumstick icons.
+- The counters right of the slot show the total arrows in the rig's arrow slots on the
+  left and total food nutrition (or food count without AppleSkin) on the right. Empty
+  states use hollow arrow, bread or drumstick icons.
+
+## Built-in HUD
+
+Chest Rig now provides the HUD features it previously expected from Inventory HUD+:
+
+- **Inventory:** 27 main slots (the hotbar is not duplicated), normal or mini scale, horizontal or vertical, bottom-centre by default with a transparent background.
+- **Potion effects:** 60x24 rows with icon, level and either remaining time or a duration bar; normal or mini, vertical or horizontal, top-left by default.
+- **Equipment:** helmet, chestplate, leggings, boots, main hand and offhand around the hotbar, with coloured percentages, empty-slot silhouettes, free inventory slots and arrow count.
+- **Settings:** press `O` to open the HUD settings. The position editor moves the inventory and potion sections; the equipment readout follows the hotbar like Inventory HUD+'s default.
+- **Persistence:** settings are stored in `config/arrowslot-hud.json`.
+
+Inventory HUD+ is declared incompatible and must be removed before launching.
 
 ## Zero-durability gear
 
@@ -88,8 +100,8 @@ the world at zero durability instead of disappearing.
   space; an empty universal slot accepts a Totem of Undying.
 - Right-clicking arrows stores them in the rig. Right-clicking a sword or axe stores it,
   or swaps it with the currently displayed weapon slot when both weapon slots are full.
-- Hovering a chestplate in the inventory shows its stored rig contents in the item tooltip, like a shulker box. This is a vanilla tooltip component and does not require Jade.
-- With **Jade Addons** installed, the Jade item label also gets two counters: total rig arrows on the left, and total food nutrition (or food count without AppleSkin) on the right. Hollow icons indicate an empty or missing category. Without Jade Addons this whole counter line is not shown.
+- Hovering a chestplate in the inventory shows its stored rig contents in the item tooltip, like a shulker box. This is a vanilla tooltip component and does not require any optional mod.
+- The chest-rig weapon HUD to the right of the hotbar always shows two counters: total rig arrows on the left, and total food nutrition (or food count without AppleSkin) on the right. Hollow icons indicate an empty or missing category. This is implemented inside Chest Rig and does not require another HUD mod.
 - With keepInventory off, broken armor is destroyed on death. A broken chestplate drops
   its stored contents instead of the chestplate.
 - With keepInventory on, broken armor is kept, and immediately after respawn it receives
@@ -109,7 +121,7 @@ Requirements:
 - **Gradle 9.9.1** installed and on your PATH; the wrapper launch scripts are not included
 - First build downloads Minecraft, NeoForge and mappings, so it needs network access and takes a few minutes
 
-Targets **Java 21**, **Minecraft 1.21.1**, **NeoForge 21.1.267**, **ModDevGradle 2.0.148**.
+Targets **Java 21**, **Minecraft 1.21.1**, **NeoForge 21.1.267**, **ModDevGradle 2.0.148**. The Java toolchain is selected by `java_version` in `gradle.properties`, so a future target can change it together with `minecraft_version`. Version-specific Java additions or resource overrides can live in `src/versions/<minecraft_version>/java` and `src/versions/<minecraft_version>/resources`; only the folder matching the current version is added to the source set.
 
 ### Command line
 
@@ -170,7 +182,21 @@ The same runs are available from the command line:
     gradle runClient
     gradle runServer
 
-Run files (worlds, options, logs) are written to run/.
+Each run has its own versioned game directory. The layout is derived from
+`run_root`, `mod_loader` and `minecraft_version` in `gradle.properties`:
+
+| Path | Contents |
+| --- | --- |
+| `run/client/neoforge/<minecraft_version>/` | Client options, worlds, logs and client mods |
+| `run/server/neoforge/<minecraft_version>/` | Server properties, worlds, logs and server mods |
+| `run/client/neoforge/<minecraft_version>/mods/` | Dev-only client mod jars |
+| `run/server/neoforge/<minecraft_version>/mods/` | Dev-only server mod jars |
+
+Run `gradle printRunLayout` to print the resolved paths for the current
+version. To test another Minecraft version, change `minecraft_version` and
+provide a matching entry in `devModDownloadsByMinecraftVersion` in
+`build.gradle`; the new run directory is created automatically and does not
+share options, worlds, logs or mods with this one.
 
 ### Troubleshooting
 
@@ -182,7 +208,8 @@ Run files (worlds, options, logs) are written to run/.
 ## Notes
 
 - Both the client and server must install the mod.
-- Jade, Jade Addons and AppleSkin are optional integrations. The build uses Jade only for compile-time tooltip classes. Development runs (`gradle runClient`) add Jade, Jade Addons and AppleSkin to the runtime classpath so all three paths can be tested.
+- AppleSkin is an optional client integration. Jade, JEI, Jade Addons and AppleSkin are `runtimeOnly` development dependencies, so both `runClient` and `runServer` load them in the dev environment. JEI also requires MezzConfig (and optionally MezzConfigGUI); the `downloadDevMods` Gradle task fetches those jars into the versioned `<gameDir>/mods` directories, reusing the old `run/mods` directory only as a one-time migration source. JEI and Jade Addons are not referenced by code yet, and none of these mods are shipped with Chest Rig.
+- **Inventory HUD+ is declared incompatible.** Chest Rig now implements its own inventory, potion, equipment and rig-counter HUD; remove Inventory HUD+ before launching, otherwise FML reports a dependency conflict at startup.
 - The current build targets NeoForge 1.21.1; additional Minecraft versions and a Fabric build are planned (see Roadmap).
 - The mixin config is declared in META-INF/neoforge.mods.toml; an access transformer exposes AbstractContainerMenu#addSlot, the sneak key's isDown field and the inventory screen layout fields used by the chest-rig row.
 

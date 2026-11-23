@@ -4,6 +4,7 @@ import com.wlsnb.arrowslot.equipment.BrokenGear;
 import com.wlsnb.arrowslot.inventory.ChestRig;
 import com.wlsnb.arrowslot.network.ModNetwork;
 import com.wlsnb.arrowslot.registry.ModDataComponents;
+import com.wlsnb.arrowslot.util.PlayerKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -15,7 +16,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Server-authoritative, deliberately non-persistent per-weapon ammo selection.
@@ -27,7 +28,9 @@ import java.util.WeakHashMap;
  * whenever it changes a selection.</p>
  */
 public final class AmmoSelection {
-    private static final Map<Player, PlayerState> STATES = new WeakHashMap<>();
+    // Entity#equals compares entity ids, which the client and integrated server share.
+    // Include the logical side so client selections never overwrite server selections.
+    private static final Map<PlayerKey, PlayerState> STATES = new ConcurrentHashMap<>();
 
     private AmmoSelection() {
     }
@@ -185,17 +188,19 @@ public final class AmmoSelection {
     }
 
     public static void copyState(Player from, Player to) {
-        PlayerState oldState = STATES.get(from);
+        PlayerState oldState = STATES.get(PlayerKey.of(from));
         if (oldState == null) {
             return;
         }
-        PlayerState newState = state(to);
-        newState.selections.clear();
+        // Respawn and dimension travel keep the same UUID, so state(to) could be the
+        // same object as oldState. Copy into a fresh state instead of clearing itself.
+        PlayerState newState = new PlayerState();
         newState.selections.putAll(oldState.selections);
+        STATES.put(PlayerKey.of(to), newState);
     }
 
     public static void clear(Player player) {
-        STATES.remove(player);
+        STATES.remove(PlayerKey.of(player));
     }
 
     private static int resolve(Player player, ItemStack weapon, UUID id, boolean reselectIfInvalid) {
@@ -231,7 +236,7 @@ public final class AmmoSelection {
     }
 
     private static PlayerState state(Player player) {
-        return STATES.computeIfAbsent(player, ignored -> new PlayerState());
+        return STATES.computeIfAbsent(PlayerKey.of(player), ignored -> new PlayerState());
     }
 
     private static void sync(Player player, UUID id, int selected) {

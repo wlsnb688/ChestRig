@@ -42,7 +42,19 @@ Minecraft JAVA版 客户端/服务端模组，在胸甲上添加**胸挂**。胸
 - G 会选择胸挂武器，并记住之前的快捷栏物品。再次按 G 会恢复之前的快捷栏槽位，并把胸挂武器放回。
 - 使用 G 选中期间，滚动滚轮或副手交换键会在胸挂的武器槽之间循环。滚动会先检查弹药 HUD，因此箭矢切换保持优先。
 - 通过数字键 0 或滚动到新槽位选中时，滚动和副手交换使用原版行为；当快捷栏选择变化时，控制器会恢复保存的物品。
-- 槽位右侧，上方数字是胸挂箭矢槽中的箭矢总数。下方数字在安装 AppleSkin 时为食物总营养值，否则为食物物品数量。空状态使用空心箭、面包或鸡腿图标。
+- 槽位右侧的计数器会在左侧显示胸挂箭矢槽中的箭矢总数，在右侧显示食物总营养值（未安装 AppleSkin 时为食物物品数量）。空状态使用空心箭、面包或鸡腿图标。
+
+## 内置 HUD
+
+Chest Rig 现在自行提供原先期望由 Inventory HUD+ 提供的 HUD 功能：
+
+- **背包：** 27 个主背包槽位（不重复显示快捷栏），普通/迷你尺寸，横向/纵向，默认位于底部居中且背景透明。
+- **药水效果：** 每行 60x24，包含图标、等级以及剩余时间或时间条；支持普通/迷你、横向/纵向，默认位于左上角。
+- **装备：** 快捷栏周围的头盔、胸甲、护腿、靴子、主手和副手，带颜色分级百分比、空槽剪影、背包空位和箭矢总数。
+- **设置：** 按 `O` 打开 HUD 设置；位置编辑界面可移动背包和药水区域，装备显示默认跟随快捷栏，与 Inventory HUD+ 默认布局一致。
+- **保存：** 设置写入 `config/arrowslot-hud.json`。
+
+Inventory HUD+ 已被声明为互斥模组，启动前必须移除。
 
 ## 零耐久装备
 
@@ -54,8 +66,8 @@ Minecraft JAVA版 客户端/服务端模组，在胸甲上添加**胸挂**。胸
 - 当饥饿值低于三个图标时，胸挂会自动进食，直到饥饿值高于五个图标。只有在安装 AppleSkin 时才会启用低生命值自动进食。
 - 拾取箭矢时，如果胸挂中存在对应且未满的箭矢槽，箭矢会自动进入该槽位。普通掉落物在快捷栏和副手都没有合适空间时会进入通用槽；空的通用槽可以接受不死图腾。
 - 右键点击箭矢会将其存入胸挂。右键点击剑或斧会将其存入胸挂；当两个武器槽都已满时，则与当前显示的武器槽交换。
-- 在背包中悬停胸甲时，物品提示框会像潜影盒一样显示其中存放的胸挂内容物。这是原版提示框组件，不需要 Jade。
-- 安装 **Jade Addons** 后，Jade 物品标签还会显示两个计数器：左侧为胸挂箭矢总数，右侧为食物总营养值（未安装 AppleSkin 时为食物数量）。空心图标表示该类别为空或不存在。未安装 Jade Addons 时，整行计数器都不显示。
+- 在背包中悬停胸甲时，物品提示框会像潜影盒一样显示其中存放的胸挂内容物。这是原版提示框组件，不需要任何可选模组。
+- 快捷栏右侧的胸挂武器 HUD 始终显示两个计数器：左侧为胸挂箭矢总数，右侧为食物总营养值（未安装 AppleSkin 时为食物数量）。空心图标表示该类别为空或不存在。这部分由 Chest Rig 自己实现，不再需要其他 HUD 模组。
 - 关闭 keepInventory 时，损坏的盔甲会在死亡时销毁。损坏的胸甲不会掉落胸甲本身，而是掉落其中存放的内容物。
 - 开启 keepInventory 时，损坏的盔甲会保留，并在重生后立即获得持续 60 秒的绑定诅咒。
 - 在铁砧上用两个相同部件修复损坏装备时，经验消耗翻倍。用钻石或下界合金锭修复会消耗三倍材料，但经验消耗保持正常。
@@ -70,7 +82,7 @@ Minecraft JAVA版 客户端/服务端模组，在胸甲上添加**胸挂**。胸
 - **Gradle 9.9.1** 已安装并在 PATH 中；未附带 Wrapper 启动脚本
 - 首次构建会下载 Minecraft、NeoForge 和映射，因此需要网络连接，并会花费几分钟
 
-构建目标：**Java 21**、**Minecraft 1.21.1**、**NeoForge 21.1.267**、**ModDevGradle 2.0.148**。
+构建目标：**Java 21**、**Minecraft 1.21.1**、**NeoForge 21.1.267**、**ModDevGradle 2.0.148**。Java 工具链由 `gradle.properties` 中的 `java_version` 选择，未来切换目标版本时可与 `minecraft_version` 一起修改。版本专属的 Java 新增类或资源覆盖可放在 `src/versions/<minecraft_version>/java` 和 `src/versions/<minecraft_version>/resources`；只有与当前版本匹配的目录会加入 source set。
 
 ### 命令行
 
@@ -120,7 +132,20 @@ ModDevGradle 的运行任务位于 Gradle 工具窗口的 **Tasks -> mod develop
     gradle runClient
     gradle runServer
 
-运行文件（世界、选项、日志）会写入 run/。
+每个运行端都有独立的版本化游戏目录。路径由 `gradle.properties` 中的
+`run_root`、`mod_loader` 和 `minecraft_version` 推导：
+
+| 路径 | 内容 |
+| --- | --- |
+| `run/client/neoforge/<minecraft_version>/` | 客户端选项、世界、日志和客户端模组 |
+| `run/server/neoforge/<minecraft_version>/` | 服务端配置、世界、日志和服务端模组 |
+| `run/client/neoforge/<minecraft_version>/mods/` | 仅开发环境使用的客户端模组 jar |
+| `run/server/neoforge/<minecraft_version>/mods/` | 仅开发环境使用的服务端模组 jar |
+
+执行 `gradle printRunLayout` 可打印当前版本解析后的路径。测试其他
+Minecraft 版本时，修改 `minecraft_version`，并在 `build.gradle` 的
+`devModDownloadsByMinecraftVersion` 中提供对应条目；新版本的运行目录会
+自动创建，不会与当前版本的选项、世界、日志或模组混用。
 
 ### 故障排查
 
@@ -132,7 +157,8 @@ ModDevGradle 的运行任务位于 Gradle 工具窗口的 **Tasks -> mod develop
 ## 备注
 
 - 客户端和服务端都必须安装本模组。
-- Jade、Jade Addons 和 AppleSkin 是可选集成。构建仅使用 Jade 的编译期提示框类。开发运行（`gradle runClient`）会将 Jade、Jade Addons 和 AppleSkin 加入运行时类路径，以便测试这三条路径。
+- AppleSkin 是可选客户端集成。Jade、JEI、Jade Addons 和 AppleSkin 使用 `runtimeOnly` 作为开发依赖，因此 `runClient` 和 `runServer` 都会加载它们。JEI 还需要 MezzConfig（可选 MezzConfigGUI），`downloadDevMods` Gradle 任务会把这两个 jar 下载到版本化的 `<gameDir>/mods` 目录；旧的 `run/mods` 只作为一次性迁移来源。JEI 与 Jade Addons 目前尚未被代码引用，这些模组都不会随 Chest Rig 一起发布。
+- **Inventory HUD+ 已被声明为互斥模组。** Chest Rig 现在自行实现背包、药水、装备和胸挂计数器 HUD；启动前请移除 Inventory HUD+，否则 FML 会直接报告依赖冲突。
 - 当前构建面向 NeoForge 1.21.1；更多 Minecraft 版本和 Fabric 版本已在计划中（见“开发计划”）。
 - mixin 配置在 META-INF/neoforge.mods.toml 中声明；access transformer 暴露了 AbstractContainerMenu#addSlot、潜行按键的 isDown 字段以及胸挂行使用的背包界面布局字段。
 

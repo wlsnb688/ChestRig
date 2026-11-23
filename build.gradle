@@ -14,8 +14,9 @@ base {
     archivesName = 'chest_rig'
 }
 
-// Minecraft 1.21.1 ships with Java 21.
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+// The Java toolchain is version-driven so a newer Minecraft target can override
+// java_version in gradle.properties without editing this script.
+java.toolchain.languageVersion = JavaLanguageVersion.of((project.findProperty('java_version') ?: '21').toString().toInteger())
 
 repositories {
     maven {
@@ -24,20 +25,142 @@ repositories {
     }
 }
 
+// ---------------------------------------------------------------------------
+// Versioned development-run layout.
+//
+// Game files, options, worlds and dev-only mods are isolated per side, loader
+// and Minecraft version:
+//
+//     run/<side>/<loader>/<minecraft_version>/
+//
+// The existing run/client/neoforge/1.21.1 and run/server/neoforge/1.21.1
+// directories are the reference layout. Keep minecraft_version and mod_loader in
+// gradle.properties as the single source of truth so a second version can be
+// tested without mixing its config, logs or mods with this one.
+// ---------------------------------------------------------------------------
+def runRootName = (project.findProperty('run_root') ?: 'run').toString()
+def modLoader = (project.findProperty('mod_loader') ?: 'neoforge').toString()
+def targetMinecraftVersion = (project.findProperty('minecraft_version') ?: '1.21.1').toString()
+def runRootDir = layout.projectDirectory.dir(runRootName)
+def runGameDir = { String side ->
+    runRootDir.dir("${side}/${modLoader}/${targetMinecraftVersion}")
+}
+
+// Optional per-version source overlays. The shared src/main tree stays the
+// baseline; src/versions/<minecraft_version>/java and .../resources are added
+// only when that folder exists, so a second target can carry small API or asset
+// differences without moving the whole project.
+def versionSourceRoot = layout.projectDirectory.dir("src/versions/${targetMinecraftVersion}")
+if (versionSourceRoot.asFile.isDirectory()) {
+    sourceSets.main.java.srcDir(versionSourceRoot.dir('java'))
+    sourceSets.main.resources.srcDir(versionSourceRoot.dir('resources'))
+}
+
 dependencies {
-    // Optional Jade tooltip integration. Jade is not a required dependency.
-    // The full Jade jar contains snownee.jade.api, so it also serves as the compile API.
-    // Version id eYz2YBGT is Jade 15.10.6+neoforge for Minecraft 1.21.1.
+    // Jade base support is kept as before. The chest-rig counter integration now lives in
+    // the client HUD instead, but the Jade dependency stays available for future use.
     compileOnly "maven.modrinth:jade:eYz2YBGT"
 
-    // Development-run test environment. These are not shipped with the mod.
+    // Development-run mods. These are optional at runtime and are not shipped with the
+    // mod. They are runtimeOnly, so both runClient and runServer load them in the dev
+    // environment; this is intentional so the client Mod List matches the test setup.
     runtimeOnly "maven.modrinth:jade:eYz2YBGT"
-    // Jade Addons 6.1.2+neoforge for Minecraft 1.21.1. The arrow/food counters are only
-    // registered when this mod is present.
+    runtimeOnly "maven.modrinth:jei:tlisIOnf"
     runtimeOnly "maven.modrinth:jade-addons-forge:O3F6Dkle"
-    // AppleSkin 3.0.9+mc1.21 for NeoForge 1.21.1 (Modrinth version id avoids the + in
-    // the human-readable version number and any loader ambiguity).
     runtimeOnly "maven.modrinth:appleskin:uAKA6Laj"
+
+}
+
+// These mod jars are not published on the Modrinth Maven. FML only discovers
+// jars under the active game directory, so they are copied into each versioned
+// <gameDir>/mods directory. A cache and the old run/mods directory are both
+// recognised; the old shared directory is only a migration source and is never
+// used by the versioned runs.
+def devModDownloadsByMinecraftVersion = [
+        '1.21.1': [
+                "mezz_config-1.21.1-neoforge-0.7.1-standalone.jar":
+                        "https://cdn.modrinth.com/data/7tEfOcA7/versions/V6oWFnxW/mezz_config-1.21.1-neoforge-0.7.1-standalone.jar",
+                "mezz_config_gui-1.21.1-neoforge-mc1.21.1-0.7.1.jar":
+                        "https://cdn.modrinth.com/data/BOHUKqOz/versions/w3KJAJXs/mezz_config_gui-1.21.1-neoforge-mc1.21.1-0.7.1.jar"
+        ]
+]
+def devModDownloads = devModDownloadsByMinecraftVersion[targetMinecraftVersion]
+if (devModDownloads == null) {
+    logger.warn("No dev-only mod download set is registered for Minecraft " + targetMinecraftVersion + "; downloadDevMods will be a no-op.")
+    devModDownloads = [:]
+}
+def devModsDirs = ['client', 'server'].collect { side ->
+    runGameDir(side).dir('mods').asFile
+}
+def devModCacheDir = new File(runRootDir.asFile, '.cache/dev-mods')
+def legacyModsDir = new File(runRootDir.asFile, 'mods')
+
+tasks.register("downloadDevMods") {
+    group = 'mod development'
+    description = 'Downloads dev-only mod jars into the versioned client/server mods directories.'
+
+    doLast {
+        devModCacheDir.mkdirs()
+        devModDownloads.each { fileName, url ->
+            def cached = new File(devModCacheDir, fileName)
+            if (!cached.isFile() || cached.length() == 0) {
+                def legacy = new File(legacyModsDir, fileName)
+                if (legacy.isFile() && legacy.length() > 0) {
+                    logger.lifecycle("Migrating " + fileName + " from " + legacyModsDir)
+                    cached.withOutputStream { output ->
+                        legacy.withInputStream { input ->
+                            output << input
+                        }
+                    }
+                } else {
+                    def partial = new File(devModCacheDir, fileName + '.part')
+                    partial.delete()
+                    logger.lifecycle("Downloading " + fileName)
+                    new URL(url).withInputStream { input ->
+                        partial.withOutputStream { output ->
+                            output << input
+                        }
+                    }
+                    if (cached.exists()) {
+                        cached.delete()
+                    }
+                    if (!partial.renameTo(cached)) {
+                        throw new GradleException("Could not move " + partial + " to " + cached)
+                    }
+                }
+            }
+
+            devModsDirs.each { modsDir ->
+                modsDir.mkdirs()
+                def target = new File(modsDir, fileName)
+                if (!target.isFile() || target.length() != cached.length()) {
+                    target.withOutputStream { output ->
+                        cached.withInputStream { input ->
+                            output << input
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+tasks.register("printRunLayout") {
+    group = 'help'
+    description = 'Prints the resolved versioned run and mods directories.'
+
+    doLast {
+        logger.lifecycle("Run root: " + runRootDir.asFile)
+        ['client', 'server'].each { side ->
+            def gameDir = runGameDir(side).asFile
+            logger.lifecycle("  " + side + " game: " + gameDir)
+            logger.lifecycle("  " + side + " mods: " + new File(gameDir, 'mods'))
+        }
+    }
+}
+
+tasks.matching { it.name == "runClient" || it.name == "runServer" }.configureEach {
+    dependsOn "downloadDevMods"
 }
 
 neoForge {
@@ -54,11 +177,13 @@ neoForge {
     runs {
         client {
             client()
+            gameDirectory.set(runGameDir('client'))
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
         server {
             server()
+            gameDirectory.set(runGameDir('server'))
             programArgument '--nogui'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }

@@ -1,12 +1,12 @@
 package com.wlsnb.arrowslot.equipment;
 
 import com.wlsnb.arrowslot.inventory.ChestRig;
+import com.wlsnb.arrowslot.util.PlayerKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.Collections;
 import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Common held-item state for a chest-rig weapon.
@@ -20,35 +20,35 @@ import java.util.WeakHashMap;
  * item use and rendering have a stable object to work with.</p>
  */
 public final class RigWeaponState {
-    // Integrated servers and clients are separate threads in the same JVM and use
-    // different Player instances, but they still share this static map.
-    private static final Map<Player, State> STATES = Collections.synchronizedMap(new WeakHashMap<>());
+    // The client and integrated-server players have the same UUID and usually the same
+    // entity id, so the key must include the logical side as well.
+    private static final Map<PlayerKey, State> STATES = new ConcurrentHashMap<>();
 
     private RigWeaponState() {
     }
 
     public static boolean isActive(Player player) {
-        State state = STATES.get(player);
+        State state = STATES.get(PlayerKey.of(player));
         return state != null && state.active;
     }
 
     public static boolean isGMode(Player player) {
-        State state = STATES.get(player);
+        State state = STATES.get(PlayerKey.of(player));
         return state != null && state.active && state.gMode;
     }
 
     public static int index(Player player) {
-        State state = STATES.get(player);
+        State state = STATES.get(PlayerKey.of(player));
         return state == null ? 0 : state.index;
     }
 
     public static int hotbarSlot(Player player) {
-        State state = STATES.get(player);
+        State state = STATES.get(PlayerKey.of(player));
         return state == null ? -1 : state.hotbarSlot;
     }
 
     public static ItemStack held(Player player) {
-        State state = STATES.get(player);
+        State state = STATES.get(PlayerKey.of(player));
         return state != null && state.active ? state.held : ItemStack.EMPTY;
     }
 
@@ -78,28 +78,28 @@ public final class RigWeaponState {
     }
 
     public static void setHeld(Player player, ItemStack stack) {
-        State state = STATES.get(player);
+        State state = STATES.get(PlayerKey.of(player));
         if (state != null && state.active) {
             state.held = stack == null || stack.isEmpty() ? ItemStack.EMPTY : stack;
         }
     }
 
     public static void setIndex(Player player, int index) {
-        State state = STATES.get(player);
+        State state = STATES.get(PlayerKey.of(player));
         if (state != null) {
             state.index = index;
         }
     }
 
     public static void setGMode(Player player, boolean gMode) {
-        State state = STATES.get(player);
+        State state = STATES.get(PlayerKey.of(player));
         if (state != null) {
             state.gMode = gMode;
         }
     }
 
     public static void deactivate(Player player) {
-        State state = STATES.get(player);
+        State state = STATES.get(PlayerKey.of(player));
         if (state != null) {
             state.active = false;
             state.gMode = false;
@@ -113,7 +113,7 @@ public final class RigWeaponState {
      * contents changed, so the caller can broadcast the equipment slot.
      */
     public static boolean save(Player player) {
-        State state = STATES.get(player);
+        State state = STATES.get(PlayerKey.of(player));
         if (state == null || !state.active) {
             return false;
         }
@@ -136,11 +136,11 @@ public final class RigWeaponState {
     }
 
     public static void clear(Player player) {
-        STATES.remove(player);
+        STATES.remove(PlayerKey.of(player));
     }
 
     private static State state(Player player) {
-        return STATES.computeIfAbsent(player, ignored -> new State());
+        return STATES.computeIfAbsent(PlayerKey.of(player), ignored -> new State());
     }
 
     private static final class State {

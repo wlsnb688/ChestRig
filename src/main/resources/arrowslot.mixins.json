@@ -10,7 +10,6 @@
     "InventoryMenuMixin",
     "ItemExtensionMixin",
     "ItemStackMixin",
-    "ItemStackTooltipMixin",
     "LivingEntityMixin",
     "PlayerMixin",
     "ProjectileWeaponItemMixin",
@@ -19,6 +18,7 @@
   "client": [
     "CreativeModeInventoryScreenMixin",
     "InventoryScreenMixin",
+    "ItemStackTooltipMixin",
     "MinecraftMixin"
   ],
   "injectors": {

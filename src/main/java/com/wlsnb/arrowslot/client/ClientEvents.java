@@ -2,6 +2,7 @@ package com.wlsnb.arrowslot.client;
 
 import com.wlsnb.arrowslot.ArrowSlotMod;
 import com.wlsnb.arrowslot.ammo.AmmoSlots;
+import com.wlsnb.arrowslot.client.hud.HudConfigScreen;
 import com.wlsnb.arrowslot.inventory.ChestRig;
 import com.wlsnb.arrowslot.network.RigWeaponActionPayload;
 import net.minecraft.client.Minecraft;
@@ -99,6 +100,9 @@ public final class ClientEvents {
                     RigWeaponActionPayload.SELECT_VANILLA,
                     0
             ));
+        }
+        while (KeyBindings.HUD_CONFIG.consumeClick()) {
+            minecraft.setScreen(new HudConfigScreen());
         }
         SneakModeController.tick(minecraft);
         ClientAmmoState.tick();

@@ -38,6 +38,13 @@ public final class KeyBindings {
             CATEGORY
     );
 
+    public static final KeyMapping HUD_CONFIG = new KeyMapping(
+            "key.arrowslot.hud_config",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_O,
+            CATEGORY
+    );
+
     private static boolean legacyDefaultsChecked;
 
     private KeyBindings() {
@@ -67,5 +74,6 @@ public final class KeyBindings {
         event.register(NEXT);
         event.register(RIG_WEAPON);
         event.register(RIG_WEAPON_VANILLA);
+        event.register(HUD_CONFIG);
     }
 }

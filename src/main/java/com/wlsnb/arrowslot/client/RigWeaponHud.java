@@ -75,43 +75,53 @@ public final class RigWeaponHud {
             guiGraphics.renderOutline(itemX - 1, itemY - 1, 18, 18, 0xFFFF3030);
         }
 
+        // The counters are implemented by Chest Rig itself. No optional HUD mod is
+        // required, and Inventory HUD+ is declared incompatible in the mod metadata.
         int arrows = ChestRig.totalArrows(player);
         int foodItems = ChestRig.totalFoodItems(player);
         boolean appleSkin = ModList.get().isLoaded("appleskin");
-        int iconX = panelX + 31;
-        int textX = iconX + 10;
-        int topY = panelY + 3;
+        String arrowText = Integer.toString(arrows);
+        String foodText = Integer.toString(
+                appleSkin ? ChestRig.totalFoodNutrition(player) : foodItems
+        );
+
+        int counterY = panelY + 3;
+        int arrowIconX = panelX + 31;
+        int arrowTextX = arrowIconX + 10;
+        int foodIconX = arrowTextX + minecraft.font.width(arrowText) + 6;
+        int foodTextX = foodIconX + 10;
+
+        // Counters sit outside the vanilla offhand-sized panel. On very narrow GUI
+        // scales, pull the pair left so the food number stays on screen.
+        int overflow = foodTextX + minecraft.font.width(foodText) - (screenWidth - 2);
+        if (overflow > 0) {
+            arrowIconX -= overflow;
+            arrowTextX -= overflow;
+            foodIconX -= overflow;
+            foodTextX -= overflow;
+        }
 
         if (arrows > 0) {
-            drawSmallItem(guiGraphics, new ItemStack(Items.ARROW), iconX, topY);
+            drawSmallItem(guiGraphics, new ItemStack(Items.ARROW), arrowIconX, counterY);
         } else {
-            drawSmallEmpty(guiGraphics, EMPTY_ARROW, iconX, topY);
+            drawSmallEmpty(guiGraphics, EMPTY_ARROW, arrowIconX, counterY);
         }
-        guiGraphics.drawString(minecraft.font, Integer.toString(arrows), textX, topY + 1, 0xFFFFFFFF, true);
+        guiGraphics.drawString(minecraft.font, arrowText, arrowTextX, counterY + 1, 0xFFFFFFFF, true);
 
-        int bottomY = panelY + 13;
         if (appleSkin) {
             if (foodItems > 0) {
-                drawSmallItem(guiGraphics, new ItemStack(Items.COOKED_CHICKEN), iconX, bottomY);
+                drawSmallItem(guiGraphics, new ItemStack(Items.COOKED_CHICKEN), foodIconX, counterY);
             } else {
-                drawSmallEmpty(guiGraphics, EMPTY_DRUMSTICK, iconX, bottomY);
+                drawSmallEmpty(guiGraphics, EMPTY_DRUMSTICK, foodIconX, counterY);
             }
-            guiGraphics.drawString(
-                    minecraft.font,
-                    Integer.toString(ChestRig.totalFoodNutrition(player)),
-                    textX,
-                    bottomY + 1,
-                    0xFFFFFFFF,
-                    true
-            );
         } else {
             if (foodItems > 0) {
-                drawSmallItem(guiGraphics, new ItemStack(Items.BREAD), iconX, bottomY);
+                drawSmallItem(guiGraphics, new ItemStack(Items.BREAD), foodIconX, counterY);
             } else {
-                drawSmallEmpty(guiGraphics, EMPTY_BREAD, iconX, bottomY);
+                drawSmallEmpty(guiGraphics, EMPTY_BREAD, foodIconX, counterY);
             }
-            guiGraphics.drawString(minecraft.font, Integer.toString(foodItems), textX, bottomY + 1, 0xFFFFFFFF, true);
         }
+        guiGraphics.drawString(minecraft.font, foodText, foodTextX, counterY + 1, 0xFFFFFFFF, true);
     }
 
     private static ItemStack displayStack(Player player) {
