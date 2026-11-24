@@ -66,7 +66,7 @@ All keys can be rebound in **Options -> Controls -> Chest Rig**.
 
 ### Crossbow magazine
 
-- A crossbow can hold up to eight matching arrows. Click an empty crossbow or press `B` to start an automatic reload; it plays the charge animation and is not interrupted by attacking.
+- A crossbow can hold up to eight matching arrows. Right-click an empty crossbow or press `B` to start an automatic reload; it plays the charge animation and is not interrupted by attacking.
 - After one charge delay, bolts load every 0.2 seconds, or every 0.1 seconds with Quick Charge, until full. Loading applies the vanilla movement slowdown and prevents sprinting.
 - Each attack fires one loaded bolt; Multishot still adds its extra projectiles.
 - Starting a reload while full or with a different arrow drops the loaded arrows. Damage interrupts a reload.
