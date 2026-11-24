@@ -4,6 +4,7 @@ import com.wlsnb.arrowslot.ArrowSlotMod;
 import com.wlsnb.arrowslot.ammo.AmmoSlots;
 import com.wlsnb.arrowslot.client.hud.HudConfigScreen;
 import com.wlsnb.arrowslot.equipment.AutoEatVisualState;
+import com.wlsnb.arrowslot.equipment.CrossbowLoadVisualState;
 import com.wlsnb.arrowslot.equipment.RigWeaponState;
 import com.wlsnb.arrowslot.network.RigWeaponActionPayload;
 import net.minecraft.client.Minecraft;
@@ -73,6 +74,7 @@ public final class ClientEvents {
         if (minecraft.player == null) {
             RigWeaponClientState.reset();
         } else {
+            CrossbowLoadVisualState.tick(minecraft.player);
             AutoEatVisualState.tick(minecraft.player);
         }
         while (KeyBindings.PREVIOUS.consumeClick()) {

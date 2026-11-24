@@ -17,8 +17,10 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 import com.wlsnb.arrowslot.equipment.AutoEatVisualState;
+import com.wlsnb.arrowslot.equipment.CrossbowLoadVisualState;
 import com.wlsnb.arrowslot.equipment.RigWeaponState;
 import com.wlsnb.arrowslot.network.AutoEatVisualPayload;
+import com.wlsnb.arrowslot.network.CrossbowLoadVisualPayload;
 import com.wlsnb.arrowslot.network.SyncRigWeaponPayload;
 import com.wlsnb.arrowslot.network.SyncSelectionPayload;
 import net.minecraft.world.entity.player.Player;
@@ -52,6 +54,21 @@ public final class ClientModEvents {
                 })
         );
         registrar.playToClient(
+                CrossbowLoadVisualPayload.TYPE,
+                CrossbowLoadVisualPayload.STREAM_CODEC,
+                (payload, context) -> context.enqueueWork(() -> {
+                    Player player = Minecraft.getInstance().player;
+                    if (player == null) {
+                        return;
+                    }
+                    if (payload.active()) {
+                        CrossbowLoadVisualState.start(player, payload.weapon(), payload.durationTicks());
+                    } else {
+                        CrossbowLoadVisualState.stop(player);
+                    }
+                })
+        );
+        registrar.playToClient(
                 SyncRigWeaponPayload.TYPE,
                 SyncRigWeaponPayload.STREAM_CODEC,
                 (payload, context) -> context.enqueueWork(() -> {
@@ -78,6 +95,7 @@ public final class ClientModEvents {
             RigWeaponState.clear(event.getPlayer());
             AmmoSelection.clear(event.getPlayer());
             AutoEatVisualState.clear(event.getPlayer());
+            CrossbowLoadVisualState.clear(event.getPlayer());
         }
         RigWeaponClientState.reset();
     }

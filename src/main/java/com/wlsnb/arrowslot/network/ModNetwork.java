@@ -36,6 +36,10 @@ public final class ModNetwork {
         PacketDistributor.sendToPlayer(player, new AutoEatVisualPayload(active, food, durationTicks));
     }
 
+    public static void syncCrossbowLoad(ServerPlayer player, boolean active, ItemStack weapon, int durationTicks) {
+        PacketDistributor.sendToPlayer(player, new CrossbowLoadVisualPayload(active, weapon, durationTicks));
+    }
+
     private static void handleRigWeapon(RigWeaponActionPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player) {

@@ -37,5 +37,11 @@ public final class ServerPayloadRegistration {
                 (payload, context) -> {
                 }
         );
+        registrar.playToClient(
+                CrossbowLoadVisualPayload.TYPE,
+                CrossbowLoadVisualPayload.STREAM_CODEC,
+                (payload, context) -> {
+                }
+        );
     }
 }

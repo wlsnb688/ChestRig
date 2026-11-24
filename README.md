@@ -66,9 +66,11 @@ All keys can be rebound in **Options -> Controls -> Chest Rig**.
 
 ### Crossbow magazine
 
-- A crossbow can hold up to eight matching arrows. After the first charge, keep holding use to load more; press `B` to reload manually at any time.
-- The loaded count appears at the top-right of the crossbow icon, and the selected ammo count at the bottom-right of bow/crossbow icons.
+- A crossbow can hold up to eight matching arrows. Click an empty crossbow or press `B` to start an automatic reload; it plays the charge animation and is not interrupted by attacking.
+- After one charge delay, bolts load every 0.2 seconds, or every 0.1 seconds with Quick Charge, until full. Loading applies the vanilla movement slowdown and prevents sprinting.
+- Each attack fires one loaded bolt; Multishot still adds its extra projectiles.
 - Starting a reload while full or with a different arrow drops the loaded arrows. Damage interrupts a reload.
+- The loaded count appears at the top-right of the crossbow icon, and the selected ammo count at the bottom-right of bow/crossbow icons.
 - **Multi-Load** raises the cap to 16 at level I and 32 at level II. At level III it becomes **Instant Load**, which removes the magazine and fires directly; the two enchantments are exclusive.
 
 ## HUD

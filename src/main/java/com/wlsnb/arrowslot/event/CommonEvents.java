@@ -50,6 +50,7 @@ public final class CommonEvents {
         if (event.getEntity() instanceof ServerPlayer player) {
             RigWeaponController.restoreForTransition(player);
             RigWeaponController.clear(player);
+            CrossbowMagazine.clear(player);
             ChestRigAutomation.clear(player);
         }
         AmmoSelection.clear(event.getEntity());
@@ -60,6 +61,8 @@ public final class CommonEvents {
         if (event.getEntity() instanceof ServerPlayer player) {
             RigWeaponController.restoreForTransition(player);
             // Cooldowns use absolute tick counters, which restart on the respawned player.
+            CrossbowMagazine.stopReload(player);
+            CrossbowMagazine.clear(player);
             ChestRigAutomation.resetAfterDeath(player);
         }
     }
@@ -76,6 +79,7 @@ public final class CommonEvents {
     public static void onChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             RigWeaponController.restoreForTransition(player);
+            CrossbowMagazine.stopReload(player);
             ChestRigAutomation.cancel(player);
         }
     }
@@ -118,6 +122,7 @@ public final class CommonEvents {
             } else {
                 AmmoSelection.clear(original);
             }
+            CrossbowMagazine.clear(player);
             ChestRigAutomation.clear(player);
             RigWeaponController.clear(original);
         } else {

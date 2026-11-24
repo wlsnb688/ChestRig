@@ -3,6 +3,7 @@ package com.wlsnb.arrowslot.mixin;
 import com.wlsnb.arrowslot.ammo.AmmoSelection;
 import com.wlsnb.arrowslot.ammo.AmmoSlots;
 import com.wlsnb.arrowslot.equipment.AutoEatVisualState;
+import com.wlsnb.arrowslot.equipment.CrossbowLoadVisualState;
 import com.wlsnb.arrowslot.equipment.RigWeaponState;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
@@ -29,6 +30,10 @@ public abstract class PlayerMixin {
     @Inject(method = "getItemBySlot", at = @At("HEAD"), cancellable = true)
     private void arrowslot$getRigWeapon(EquipmentSlot slot, CallbackInfoReturnable<ItemStack> cir) {
         Player player = (Player) (Object) this;
+        if (slot == EquipmentSlot.MAINHAND && CrossbowLoadVisualState.isActive(player)) {
+            cir.setReturnValue(CrossbowLoadVisualState.weapon(player));
+            return;
+        }
         if (slot == EquipmentSlot.MAINHAND && AutoEatVisualState.isActive(player)) {
             cir.setReturnValue(AutoEatVisualState.food(player));
             return;
