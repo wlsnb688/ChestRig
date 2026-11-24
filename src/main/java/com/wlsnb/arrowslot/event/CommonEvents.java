@@ -4,6 +4,7 @@ import com.wlsnb.arrowslot.ArrowSlotMod;
 import com.wlsnb.arrowslot.ammo.AmmoSelection;
 import com.wlsnb.arrowslot.equipment.BrokenGear;
 import com.wlsnb.arrowslot.equipment.ChestRigAutomation;
+import com.wlsnb.arrowslot.equipment.CrossbowMagazine;
 import com.wlsnb.arrowslot.equipment.RigWeaponController;
 import com.wlsnb.arrowslot.equipment.RigWeaponState;
 import com.wlsnb.arrowslot.inventory.ChestRig;
@@ -39,6 +40,7 @@ public final class CommonEvents {
             RigWeaponController.tick(player);
             AmmoSelection.tick(player);
             BrokenGear.tickTemporaryBinding(player);
+            CrossbowMagazine.tick(player);
             ChestRigAutomation.tick(player);
         }
     }
@@ -65,6 +67,7 @@ public final class CommonEvents {
     @SubscribeEvent
     public static void onLivingDamage(LivingDamageEvent.Post event) {
         if (event.getEntity() instanceof ServerPlayer player && event.getOriginalDamage() > 0.0F) {
+            CrossbowMagazine.stopReload(player);
             ChestRigAutomation.onDamaged(player);
         }
     }

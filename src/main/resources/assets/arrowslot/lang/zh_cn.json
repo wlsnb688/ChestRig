@@ -28,5 +28,8 @@
   "key.arrowslot.hud_config": "胸挂 HUD 设置",
   "hud.arrowslot.position_title": "HUD 位置",
   "hud.arrowslot.position_hint": "拖动背包、防具或主手/计数器方框",
-  "hud.arrowslot.option.edit_positions": "编辑 HUD 位置"
+  "hud.arrowslot.option.edit_positions": "编辑 HUD 位置",
+  "key.arrowslot.reload_crossbow": "手动装填弩",
+  "enchantment.arrowslot.multiload": "多重装填",
+  "enchantment.arrowslot.instant_load": "瞬间装填"
 }

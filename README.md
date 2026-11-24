@@ -50,6 +50,7 @@ Rig contents stay inside the chestplate when it is removed or dropped. Hover a c
 | Previous / next ammo slot | Mouse button 5 / 4 |
 | Reset ammo selection | Middle click |
 | Open HUD settings | `O` |
+| Manually reload the held crossbow | `B` |
 | Store arrows, sword or axe in the rig | Right-click the item |
 
 All keys can be rebound in **Options -> Controls -> Chest Rig**.
@@ -62,6 +63,13 @@ All keys can be rebound in **Options -> Controls -> Chest Rig**.
 - Press `G` to select or release the rig weapon. While selected, scroll or use the offhand-swap key to cycle rig weapon slots.
 - The slot beside the hotbar is hidden when no chestplate or rig weapon is available. It shows a white selection frame when active.
 - A thrown rig trident is removed from the rig, glows on the ground, and returns to its original or another empty rig weapon slot when picked up. Riptide and creative throws keep vanilla behaviour.
+
+### Crossbow magazine
+
+- A crossbow can hold up to eight matching arrows. After the first charge, keep holding use to load more; press `B` to reload manually at any time.
+- The loaded count appears at the top-right of the crossbow icon, and the selected ammo count at the bottom-right of bow/crossbow icons.
+- Starting a reload while full or with a different arrow drops the loaded arrows. Damage interrupts a reload.
+- **Multi-Load** raises the cap to 16 at level I and 32 at level II. At level III it becomes **Instant Load**, which removes the magazine and fires directly; the two enchantments are exclusive.
 
 ## HUD
 

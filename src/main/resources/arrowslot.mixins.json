@@ -6,6 +6,7 @@
   "mixins": [
     "AnvilMenuMixin",
     "BonusLevelTableConditionMixin",
+    "CrossbowItemMixin",
     "EnchantmentHelperMixin",
     "EquipableMixin",
     "InventoryMenuMixin",
@@ -20,6 +21,7 @@
   ],
   "client": [
     "CreativeModeInventoryScreenMixin",
+    "GuiGraphicsMixin",
     "GuiMixin",
     "InventoryScreenMixin",
     "LocalPlayerMixin",

@@ -90,6 +90,12 @@ public final class ClientEvents {
         while (KeyBindings.HUD_CONFIG.consumeClick()) {
             minecraft.setScreen(new HudConfigScreen());
         }
+        while (KeyBindings.RELOAD_CROSSBOW.consumeClick()) {
+            PacketDistributor.sendToServer(new RigWeaponActionPayload(
+                    RigWeaponActionPayload.RELOAD_CROSSBOW,
+                    0
+            ));
+        }
         SneakModeController.tick(minecraft);
         ClientAmmoState.tick();
     }

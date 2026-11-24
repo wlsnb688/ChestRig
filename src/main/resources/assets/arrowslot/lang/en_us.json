@@ -28,5 +28,8 @@
   "key.arrowslot.hud_config": "Chest Rig HUD Settings",
   "hud.arrowslot.position_title": "HUD Positions",
   "hud.arrowslot.position_hint": "Drag the inventory, armor or hands box",
-  "hud.arrowslot.option.edit_positions": "Edit HUD Positions"
+  "hud.arrowslot.option.edit_positions": "Edit HUD Positions",
+  "key.arrowslot.reload_crossbow": "Reload Crossbow",
+  "enchantment.arrowslot.multiload": "Multi-Load",
+  "enchantment.arrowslot.instant_load": "Instant Load"
 }

@@ -88,6 +88,41 @@ public final class AmmoSelection {
         return resolve(player, weapon, id, false);
     }
 
+    /** Returns the currently selected ammo stack without consuming it. */
+    public static ItemStack peekSelected(Player player, ItemStack weapon) {
+        int selected = selected(player, weapon);
+        return selected < 0 ? ItemStack.EMPTY : AmmoSlots.get(player, selected).copy();
+    }
+
+    /**
+     * Consumes one projectile from the selected ammo slot. Used by the crossbow magazine,
+     * which loads ammo before vanilla's shooting path runs.
+     */
+    public static ItemStack consumeSelected(ServerPlayer player, ItemStack weapon) {
+        if (BrokenGear.isBroken(weapon)) {
+            return ItemStack.EMPTY;
+        }
+        UUID id = ensureWeaponId(player, weapon);
+        int selected = id == null
+                ? AmmoSlots.findDefault(player, weapon)
+                : resolve(player, weapon, id, true);
+        if (selected < 0 || !AmmoSlots.isValidAmmo(weapon, AmmoSlots.get(player, selected))) {
+            return ItemStack.EMPTY;
+        }
+
+        ItemStack ammo = AmmoSlots.get(player, selected);
+        ItemStack taken = ammo.copyWithCount(1);
+        if (player.hasInfiniteMaterials()) {
+            return taken;
+        }
+
+        if (AmmoSlots.isRigArrowSlot(selected)) {
+            return AmmoSlots.consumeRigAmmo(player, selected, 1);
+        }
+        ammo.shrink(1);
+        return taken;
+    }
+
     public static void select(ServerPlayer player, ItemStack weapon, int candidate) {
         if (!AmmoSlots.isWeapon(weapon) || BrokenGear.isBroken(weapon)) {
             return;

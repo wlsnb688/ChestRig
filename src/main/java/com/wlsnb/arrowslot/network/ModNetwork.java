@@ -2,6 +2,7 @@ package com.wlsnb.arrowslot.network;
 
 import com.wlsnb.arrowslot.ammo.AmmoSelection;
 import com.wlsnb.arrowslot.ammo.AmmoSlots;
+import com.wlsnb.arrowslot.equipment.CrossbowMagazine;
 import com.wlsnb.arrowslot.equipment.RigWeaponController;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -38,7 +39,11 @@ public final class ModNetwork {
     private static void handleRigWeapon(RigWeaponActionPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player) {
-                RigWeaponController.handle(player, payload.action(), payload.value());
+                if (payload.action() == RigWeaponActionPayload.RELOAD_CROSSBOW) {
+                    CrossbowMagazine.manualReload(player);
+                } else {
+                    RigWeaponController.handle(player, payload.action(), payload.value());
+                }
             }
         });
     }

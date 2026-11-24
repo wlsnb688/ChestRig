@@ -11,6 +11,7 @@ public record RigWeaponActionPayload(int action, int value) implements CustomPac
     public static final int SELECT_G = 0;
     public static final int CYCLE = 2;
     public static final int RESTORE = 3;
+    public static final int RELOAD_CROSSBOW = 4;
 
     public static final CustomPacketPayload.Type<RigWeaponActionPayload> TYPE =
             new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(ArrowSlotMod.MOD_ID, "rig_weapon_action"));

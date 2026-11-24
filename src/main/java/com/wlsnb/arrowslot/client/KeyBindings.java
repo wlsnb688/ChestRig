@@ -38,6 +38,13 @@ public final class KeyBindings {
             CATEGORY
     );
 
+    public static final KeyMapping RELOAD_CROSSBOW = new KeyMapping(
+            "key.arrowslot.reload_crossbow",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_B,
+            CATEGORY
+    );
+
     private static boolean legacyDefaultsChecked;
 
     private KeyBindings() {
@@ -67,5 +74,6 @@ public final class KeyBindings {
         event.register(NEXT);
         event.register(RIG_WEAPON);
         event.register(HUD_CONFIG);
+        event.register(RELOAD_CROSSBOW);
     }
 }
