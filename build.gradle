@@ -34,6 +34,10 @@ repositories {
         name = "Modrinth"
         url = "https://api.modrinth.com/maven"
     }
+    maven {
+        name = "Curse Maven"
+        url = "https://www.cursemaven.com"
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -77,6 +81,12 @@ dependencies {
     runtimeOnly "maven.modrinth:jei:tlisIOnf"
     runtimeOnly "maven.modrinth:jade-addons-forge:O3F6Dkle"
     runtimeOnly "maven.modrinth:appleskin:uAKA6Laj"
+    // Test-only tools: performance profiling and chain mining. Neither is a dependency of Chest Rig.
+    runtimeOnly "maven.modrinth:spark:v5qtqRQi"
+    // Architectury API is required by FTB Ultimine; it is not used by Chest Rig.
+    runtimeOnly "maven.modrinth:architectury-api:xGfBrBzj"
+    runtimeOnly "curse.maven:ftb-library-forge-404465:9008089"
+    runtimeOnly "curse.maven:ftb-ultimine-forge-386134:5671703"
 
 }
 

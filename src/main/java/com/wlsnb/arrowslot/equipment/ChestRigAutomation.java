@@ -1,5 +1,6 @@
 package com.wlsnb.arrowslot.equipment;
 
+import com.wlsnb.arrowslot.compat.AppleSkinFoodCompat;
 import com.wlsnb.arrowslot.inventory.ChestRig;
 import com.wlsnb.arrowslot.network.ModNetwork;
 import net.minecraft.core.component.DataComponents;
@@ -28,7 +29,9 @@ public final class ChestRigAutomation {
     private static final Map<UUID, EatState> EATING = new ConcurrentHashMap<>();
     private static final Map<UUID, Integer> NEXT_EAT = new ConcurrentHashMap<>();
     private static final Map<UUID, Integer> GOLDEN_LOCK = new ConcurrentHashMap<>();
+    private static final Set<UUID> FEEDING = ConcurrentHashMap.newKeySet();
     private static final Set<UUID> HEALING = ConcurrentHashMap.newKeySet();
+    private static final Set<UUID> NORMAL_EAT_REFUND = ConcurrentHashMap.newKeySet();
 
     private static final int EAT_COOLDOWN_TICKS = 100;
     private static final int GOLDEN_APPLE_LOCK_TICKS = 600;
@@ -50,17 +53,25 @@ public final class ChestRigAutomation {
         }
 
         FoodData foodData = player.getFoodData();
-        boolean lowHunger = foodData.getFoodLevel() < 6;
-        if (lowHunger) {
-            if (player.tickCount >= NEXT_EAT.getOrDefault(id, 0)) {
-                startEating(player, id);
-            }
-            return;
-        }
-
-        if (player.getHealth() < 6.0F && ModList.get().isLoaded("appleskin")) {
+        // Start the healing session before the low-hunger branch. Otherwise the first
+        // eaten food can raise health above three hearts, and the session would never start.
+        if (player.getHealth() <= 6.0F && ModList.get().isLoaded("appleskin")) {
             HEALING.add(id);
         }
+        if (foodData.getFoodLevel() <= 6) {
+            FEEDING.add(id);
+        }
+        if (FEEDING.contains(id)) {
+            if (foodData.getFoodLevel() >= 10) {
+                FEEDING.remove(id);
+            } else {
+                tryStartEating(player, id);
+                return;
+            }
+        }
+
+        // Keep the session alive after health rises above three hearts; it ends when actual
+        // health is full, hunger is full, or the eaten food is predicted to fill health.
         if (!HEALING.contains(id)) {
             return;
         }
@@ -69,8 +80,17 @@ public final class ChestRigAutomation {
             return;
         }
 
-        if (player.tickCount >= NEXT_EAT.getOrDefault(id, 0)) {
-            startEating(player, id);
+        tryStartEating(player, id);
+    }
+
+    /**
+     * A hit during the post-eat cooldown grants one immediate auto-eat attempt for
+     * non-golden food. Golden apples keep their own lock and are skipped by that attempt.
+     */
+    public static void onDamaged(ServerPlayer player) {
+        UUID id = player.getUUID();
+        if (player.tickCount < NEXT_EAT.getOrDefault(id, 0)) {
+            NORMAL_EAT_REFUND.add(id);
         }
     }
 
@@ -84,7 +104,18 @@ public final class ChestRigAutomation {
         EATING.remove(id);
         NEXT_EAT.remove(id);
         GOLDEN_LOCK.remove(id);
+        FEEDING.remove(id);
         HEALING.remove(id);
+        NORMAL_EAT_REFUND.remove(id);
+    }
+
+    /**
+     * Clears the transient per-life state. Tick counters restart on the respawned player,
+     * so keeping the old cooldown timestamps would suppress auto-eating after death.
+     */
+    public static void resetAfterDeath(ServerPlayer player) {
+        cancel(player);
+        clear(player);
     }
 
     private static void tickEating(ServerPlayer player, UUID id, EatState state) {
@@ -107,8 +138,19 @@ public final class ChestRigAutomation {
         }
     }
 
-    private static boolean startEating(ServerPlayer player, UUID id) {
-        int storage = findFoodSlot(player, id);
+    private static void tryStartEating(ServerPlayer player, UUID id) {
+        if (player.tickCount >= NEXT_EAT.getOrDefault(id, 0)) {
+            NORMAL_EAT_REFUND.remove(id);
+            startEating(player, id, true);
+            return;
+        }
+        if (NORMAL_EAT_REFUND.contains(id) && startEating(player, id, false)) {
+            NORMAL_EAT_REFUND.remove(id);
+        }
+    }
+
+    private static boolean startEating(ServerPlayer player, UUID id, boolean allowGolden) {
+        int storage = findBestFoodSlot(player, id, allowGolden);
         if (storage < 0) {
             return false;
         }
@@ -119,7 +161,12 @@ public final class ChestRigAutomation {
         }
 
         int duration = Math.max(1, stack.getItem().getUseDuration(stack, player));
-        EatState state = new EatState(storage, stack.copyWithCount(1), player.tickCount, duration);
+        float healthAtStart = player.getHealth();
+        boolean finishesHealing = HEALING.contains(id)
+                && ModList.get().isLoaded("appleskin")
+                && healthAtStart + AppleSkinFoodCompat.estimatedHealthIncrement(player, food) >= player.getMaxHealth();
+        EatState state = new EatState(storage, stack.copyWithCount(1), player.tickCount, duration,
+                healthAtStart, finishesHealing);
         EATING.put(id, state);
         ModNetwork.syncAutoEat(player, true, state.food, duration);
         playEatSound(player);
@@ -152,6 +199,10 @@ public final class ChestRigAutomation {
             GOLDEN_LOCK.put(id, player.tickCount + ENCHANTED_GOLDEN_APPLE_LOCK_TICKS);
         }
 
+        if (state.finishesHealing && player.getHealth() >= state.healthAtStart) {
+            HEALING.remove(id);
+        }
+
         EATING.remove(id);
         ModNetwork.syncAutoEat(player, false, ItemStack.EMPTY, 0);
     }
@@ -163,20 +214,55 @@ public final class ChestRigAutomation {
         }
     }
 
-    private static int findFoodSlot(ServerPlayer player, UUID id) {
+    /**
+     * Chooses the best food instead of the first occupied slot. During low-health
+     * recovery AppleSkin's estimated healing is the primary key; otherwise nutrition and
+     * saturation are used. Slot order is the final tie-breaker.
+     */
+    private static int findBestFoodSlot(ServerPlayer player, UUID id, boolean allowGolden) {
         int lockUntil = GOLDEN_LOCK.getOrDefault(id, 0);
+        boolean healingPriority = HEALING.contains(id) && ModList.get().isLoaded("appleskin");
+        int bestStorage = -1;
+        float bestHealing = Float.NEGATIVE_INFINITY;
+        int bestNutrition = Integer.MIN_VALUE;
+        float bestSaturation = Float.NEGATIVE_INFINITY;
+
         for (int i = 0; i < foodSlots(player); i++) {
             int storage = ChestRig.FOOD_START + i;
             ItemStack stack = ChestRig.get(ChestRig.getChestplate(player), storage);
             if (!stack.has(DataComponents.FOOD)) {
                 continue;
             }
+            if (!allowGolden && isGoldenApple(stack)) {
+                continue;
+            }
             if (isGoldenApple(stack) && player.tickCount < lockUntil) {
                 continue;
             }
-            return storage;
+
+            FoodProperties food = stack.get(DataComponents.FOOD);
+            if (food == null) {
+                continue;
+            }
+            if (player.getCooldowns().isOnCooldown(stack.getItem())
+                    || !player.canEat(food.canAlwaysEat())) {
+                continue;
+            }
+            float healing = healingPriority
+                    ? AppleSkinFoodCompat.estimatedHealthIncrement(player, food)
+                    : 0.0F;
+            if (bestStorage < 0
+                    || healing > bestHealing
+                    || (healing == bestHealing && food.nutrition() > bestNutrition)
+                    || (healing == bestHealing && food.nutrition() == bestNutrition
+                    && food.saturation() > bestSaturation)) {
+                bestStorage = storage;
+                bestHealing = healing;
+                bestNutrition = food.nutrition();
+                bestSaturation = food.saturation();
+            }
         }
-        return -1;
+        return bestStorage;
     }
 
     private static int findMatchingFoodSlot(ServerPlayer player, ItemStack food) {
@@ -209,6 +295,7 @@ public final class ChestRigAutomation {
         return ChestRig.material(ChestRig.getChestplate(player)).foodSlots();
     }
 
-    private record EatState(int storage, ItemStack food, int startTick, int duration) {
+    private record EatState(int storage, ItemStack food, int startTick, int duration,
+                            float healthAtStart, boolean finishesHealing) {
     }
 }

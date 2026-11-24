@@ -15,6 +15,7 @@ import net.minecraft.world.level.GameRules;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingSwapItemsEvent;
@@ -56,7 +57,15 @@ public final class CommonEvents {
     public static void onLivingDeath(LivingDeathEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             RigWeaponController.restoreForTransition(player);
-            ChestRigAutomation.cancel(player);
+            // Cooldowns use absolute tick counters, which restart on the respawned player.
+            ChestRigAutomation.resetAfterDeath(player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onLivingDamage(LivingDamageEvent.Post event) {
+        if (event.getEntity() instanceof ServerPlayer player && event.getOriginalDamage() > 0.0F) {
+            ChestRigAutomation.onDamaged(player);
         }
     }
 
@@ -106,6 +115,7 @@ public final class CommonEvents {
             } else {
                 AmmoSelection.clear(original);
             }
+            ChestRigAutomation.clear(player);
             RigWeaponController.clear(original);
         } else {
             // Dimension travel keeps the transient per-weapon choices.
@@ -157,7 +167,7 @@ public final class CommonEvents {
 
     @SubscribeEvent
     public static void onBreakSpeed(PlayerEvent.BreakSpeed event) {
-        if (BrokenGear.isTrackedGear(event.getEntity().getMainHandItem())) {
+        if (BrokenGear.isBroken(event.getEntity().getMainHandItem())) {
             // Broken tools should not keep mining at full speed forever.
             event.setNewSpeed(0.0F);
         }
@@ -170,7 +180,7 @@ public final class CommonEvents {
      */
     @SubscribeEvent
     public static void onItemAttributeModifiers(ItemAttributeModifierEvent event) {
-        if (BrokenGear.isTrackedGear(event.getItemStack())) {
+        if (BrokenGear.isBroken(event.getItemStack())) {
             event.clearModifiers();
         }
     }
